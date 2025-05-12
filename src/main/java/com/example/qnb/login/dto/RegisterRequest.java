@@ -2,26 +2,38 @@ package com.example.qnb.login.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import jakarta.validation.constraints.*;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
 public class RegisterRequest {
+
+    @Email
+    @NotBlank
     private String userEmail;
+
+    @NotBlank
     private String userPassword;
 
-    public String getUserEmail() {
-        return userEmail;
-    }
+    @NotBlank
+    private String confirmPassword;
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
-    }
+    @NotBlank
+    private String name;
 
-    public String getUserPassword() {
-        return userPassword;
-    }
+    private String userNickname; //닉네임은 필수 아님
 
-    public void setUserPassword(String userPassword) {
-        this.userPassword = userPassword;
-    }
+    @NotNull
+    private LocalDate birthDate;
+
+    @NotBlank
+    private String gender;
+
+    @NotBlank
+    private String phoneNumber;
 }
+
+
+

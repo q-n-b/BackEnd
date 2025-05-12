@@ -1,5 +1,6 @@
 server:
   port: 8080  # ← 이게 8081이나 다른 숫자면 그 포트로 요청 보내야 함
+  address: 0.0.0.0
 
 spring:
   datasource:
