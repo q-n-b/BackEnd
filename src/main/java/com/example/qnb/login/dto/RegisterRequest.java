@@ -3,6 +3,7 @@ package com.example.qnb.login.dto;
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.validation.constraints.*;
+import com.example.qnb.login.entity.Gender;
 
 import java.time.LocalDate;
 
@@ -29,7 +30,7 @@ public class RegisterRequest {
     private LocalDate birthDate;
 
     @NotBlank
-    private String gender;
+    private Gender gender;
 
     @NotBlank
     private String phoneNumber;

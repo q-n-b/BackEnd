@@ -32,8 +32,9 @@ public class User {
     @Column(nullable = false)
     private LocalDate birthDate;
 
+    @Enumerated(EnumType.STRING) //성별은 남,여로만 제한
     @Column(nullable = false)
-    private String gender;
+    private Gender gender;
 
     @Column(nullable = false)
     private String phoneNumber;
