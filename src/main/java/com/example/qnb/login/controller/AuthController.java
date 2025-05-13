@@ -104,39 +104,66 @@ public class AuthController {
         }
     }
 
-    
+
     //로그인 API
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
-        Optional<User> optionalUser = userRepository.findByUserEmail(request.getUserEmail());
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    Map.of("errorCode", "INVALID_CREDENTIALS", "errorMessage", "이메일 또는 비밀번호가 일치하지 않습니다.")
+        try {
+            // 1. 필수 입력값 누락 확인
+            if (request.getUserEmail() == null || request.getUserPassword() == null) {
+                return ResponseEntity.badRequest().body(
+                        Map.of(
+                                "errorCode", "MISSING_FIELD",
+                                "errorMessage", "필수 입력 항목이 누락되었습니다."
+                        )
+                );
+            }
+
+            // 2. 이메일 존재 확인
+            Optional<User> optionalUser = userRepository.findByUserEmail(request.getUserEmail());
+            if (optionalUser.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                        Map.of(
+                                "errorCode", "INVALID_CREDENTIALS",
+                                "errorMessage", "이메일 또는 비밀번호가 올바르지 않습니다."
+                        )
+                );
+            }
+
+            User user = optionalUser.get();
+
+            // 3. 비밀번호 일치 확인
+            if (!passwordEncoder.matches(request.getUserPassword(), user.getUserPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                        Map.of(
+                                "errorCode", "INVALID_CREDENTIALS",
+                                "errorMessage", "이메일 또는 비밀번호가 올바르지 않습니다."
+                        )
+                );
+            }
+
+            // 4. 토큰 발급
+            String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+            String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserEmail());
+
+            // 5. RefreshToken 저장
+            RefreshToken token = new RefreshToken(user.getUserEmail(), refreshToken);
+            refreshTokenRepository.save(token);
+
+            // 6. 성공 응답
+            return ResponseEntity.ok(Map.of(
+                    "message", "로그인에 성공했습니다.",
+                    "accessToken", accessToken,
+                    "refreshToken", refreshToken
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of(
+                            "errorCode", "INTERNAL_SERVER_ERROR",
+                            "errorMessage", "서버 오류가 발생했습니다."
+                    )
             );
         }
-
-        User user = optionalUser.get();
-
-        if (!passwordEncoder.matches(request.getUserPassword(), user.getUserPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    Map.of("errorCode", "INVALID_CREDENTIALS", "errorMessage", "이메일 또는 비밀번호가 일치하지 않습니다.")
-            );
-        }
-
-        // 1. AccessToken & RefreshToken 발급
-        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserEmail());
-
-        // 2. RefreshToken 저장 (기존 사용자면 덮어쓰기)
-        RefreshToken token = new RefreshToken(user.getUserEmail(), refreshToken);
-        refreshTokenRepository.save(token);
-
-        // 3. 응답 반환
-        return ResponseEntity.ok(Map.of(
-                "message", "로그인에 성공했습니다.",
-                "accessToken", accessToken,
-                "refreshToken", refreshToken
-        ));
     }
-
 }
