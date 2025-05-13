@@ -1,9 +1,9 @@
 package com.example.qnb.login.dto;
 
-public class LoginResponse {
+public class LoginResponseDto {
     private String accessToken;
 
-    public LoginResponse(String accessToken) {
+    public LoginResponseDto(String accessToken) {
         this.accessToken = accessToken;
     }
 

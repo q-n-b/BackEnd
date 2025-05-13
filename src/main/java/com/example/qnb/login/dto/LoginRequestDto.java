@@ -1,13 +1,13 @@
 package com.example.qnb.login.dto;
 
-public class LoginRequest {
+public class LoginRequestDto {
     private String userEmail;
     private String userPassword;
 
     // 생성자 (선택)
-    public LoginRequest() {}
+    public LoginRequestDto() {}
 
-    public LoginRequest(String userEmail, String userPassword) {
+    public LoginRequestDto(String userEmail, String userPassword) {
         this.userEmail = userEmail;
         this.userPassword = userPassword;
     }

@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class RegisterRequest {
+public class RegisterRequestDto {
 
     @Email
     @NotBlank
@@ -35,6 +35,8 @@ public class RegisterRequest {
     @NotBlank
     private String phoneNumber;
 }
+
+
 
 
 

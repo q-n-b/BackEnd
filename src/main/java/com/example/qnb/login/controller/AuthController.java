@@ -1,9 +1,9 @@
 package com.example.qnb.login.controller;
 
 import com.example.qnb.login.JWT.JwtTokenProvider;
-import com.example.qnb.login.dto.LoginRequest;
-import com.example.qnb.login.dto.LoginResponse;
-import com.example.qnb.login.dto.RegisterRequest;
+import com.example.qnb.login.dto.LoginRequestDto;
+import com.example.qnb.login.dto.LoginResponseDto;
+import com.example.qnb.login.dto.RegisterRequestDto;
 import com.example.qnb.login.entity.User;
 import com.example.qnb.login.repository.UserRepository;
 import com.example.qnb.login.service.UserService;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/user")
 
 public class AuthController {
 
@@ -34,7 +34,7 @@ public class AuthController {
 
     // 회원가입 API
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
         //이메일 중복체크
         if (userRepository.findByUserEmail(request.getUserEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("이미 사용 중인 이메일입니다.");
@@ -53,7 +53,7 @@ public class AuthController {
 
     // 로그인 API
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
         Optional<User> optionalUser = userRepository.findByUserEmail(request.getUserEmail());
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 일치하지 않습니다.");
@@ -67,6 +67,6 @@ public class AuthController {
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
 
-        return ResponseEntity.ok(new LoginResponse(accessToken));
+        return ResponseEntity.ok(new LoginResponseDto(accessToken));
     }
 }
