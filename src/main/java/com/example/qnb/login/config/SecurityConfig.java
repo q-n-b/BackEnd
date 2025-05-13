@@ -33,6 +33,7 @@ public class SecurityConfig {
 
     @Bean
 
+    //비번 암호 config
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }

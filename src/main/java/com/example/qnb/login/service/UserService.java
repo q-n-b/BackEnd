@@ -14,7 +14,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void registerUser(SignupRequestDto request) {
+    public User registerUser(SignupRequestDto request) {
         User user = new User();
         user.setUserEmail(request.getUserEmail());
         user.setUserPassword(passwordEncoder.encode(request.getUserPassword()));
@@ -24,6 +24,6 @@ public class UserService {
         user.setGender(request.getGender());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setProfileUrl(request.getProfileUrl());
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 }

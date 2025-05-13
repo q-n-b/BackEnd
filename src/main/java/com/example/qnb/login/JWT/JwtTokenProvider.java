@@ -14,7 +14,7 @@ public class JwtTokenProvider {
     private final long accessTokenValidTime = 1000L * 60 * 30; // 30분
     private final long refreshTokenValidTime = 1000L * 60 * 60 * 24 * 7; // 7일
 
-    // Access Token 생성
+    // Access Token 생성 (userId를 subject로 사용)
     public String createAccessToken(Long userId) {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
@@ -24,24 +24,24 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // Refresh Token 생성
-    public String createRefreshToken(Long userId) {
+    // Refresh Token 생성 (userEmail을 subject로 사용)
+    public String createRefreshToken(String userEmail) {
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
+                .setSubject(userEmail)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidTime))
                 .signWith(key)
                 .compact();
     }
 
-    // 토큰에서 userId 추출
-    public Long getUserIdFromToken(String token) {
+    // 토큰에서 subject (userId or userEmail) 추출
+    public String getSubjectFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return Long.parseLong(claims.getSubject());
+        return claims.getSubject();
     }
 
     // 토큰 유효성 검증
