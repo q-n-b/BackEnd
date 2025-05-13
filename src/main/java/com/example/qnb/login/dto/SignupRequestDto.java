@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class RegisterRequestDto {
+public class SignupRequestDto {
 
     @Email
     @NotBlank
@@ -34,6 +34,8 @@ public class RegisterRequestDto {
 
     @NotBlank
     private String phoneNumber;
+
+    private String profileUrl; //서버에서 주입 예정
 }
 
 

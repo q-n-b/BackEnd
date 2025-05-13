@@ -26,7 +26,7 @@ public class UserPreferenceService {
         preference.setImportantFactor(dto.getImportantFactor());
         preference.setPreferredGenres(dto.getPreferredGenres());
         preference.setPreferredKeywords(dto.getPreferredKeywords());
-        preference.setFavoriteBookIsbns(dto.getFavoriteBookIsbns());
+        preference.setBookId(dto.getBookId());
 
         preferenceRepository.save(preference); //모든 값이 설정된 객체를 DB에 저장
     }

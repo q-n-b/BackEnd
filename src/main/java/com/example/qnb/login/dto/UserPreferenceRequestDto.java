@@ -12,5 +12,5 @@ public class UserPreferenceRequestDto {
 
     private List<String> preferredGenres;
     private List<String> preferredKeywords;
-    private List<String> favoriteBookIsbns;
+    private List<String> bookId;
 }

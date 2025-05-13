@@ -1,6 +1,6 @@
 package com.example.qnb.login.service;
 
-import com.example.qnb.login.dto.RegisterRequestDto;
+import com.example.qnb.login.dto.SignupRequestDto;
 import com.example.qnb.login.entity.User;
 import com.example.qnb.login.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void registerUser(RegisterRequestDto request) {
+    public void registerUser(SignupRequestDto request) {
         User user = new User();
         user.setUserEmail(request.getUserEmail());
         user.setUserPassword(passwordEncoder.encode(request.getUserPassword()));
@@ -23,6 +23,7 @@ public class UserService {
         user.setBirthDate(request.getBirthDate());
         user.setGender(request.getGender());
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setProfileUrl(request.getProfileUrl());
         userRepository.save(user);
     }
 }

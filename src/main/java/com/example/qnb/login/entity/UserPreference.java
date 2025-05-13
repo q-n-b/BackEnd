@@ -28,7 +28,7 @@ public class UserPreference {
     private List<String> preferredKeywords;
 
     @ElementCollection
-    private List<String> favoriteBookIsbns; // ISBN만 저장
+    private List<String> bookId; // bookId로 저장
 
     // Getters and Setters 생략 가능 (Lombok 사용 시 @Getter, @Setter)
 }
