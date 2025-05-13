@@ -22,13 +22,14 @@ public class UserPreference {
     private Integer importantFactor;
 
     @ElementCollection //별도 테이블 분리해서 저장
-    private List<String> preferredGenres;
+    private List<Integer> preferredGenres;
 
     @ElementCollection
     private List<String> preferredKeywords;
 
     @ElementCollection
-    private List<String> bookId; // bookId로 저장
+    @CollectionTable(name = "user_preference_book_id")
+    private List<Integer> bookId; // bookId로 저장
 
     // Getters and Setters 생략 가능 (Lombok 사용 시 @Getter, @Setter)
 }

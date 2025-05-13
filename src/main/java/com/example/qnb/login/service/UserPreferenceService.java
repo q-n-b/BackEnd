@@ -15,8 +15,8 @@ public class UserPreferenceService {
     private final UserRepository userRepository;
     private final UserPreferenceRepository preferenceRepository;
 
-    public void savePreference(UserPreferenceRequestDto dto) {
-        User user = userRepository.findById(dto.getUserId())
+    public void savePreference(Long userId, UserPreferenceRequestDto dto) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 //DB에 조회하고 없으면 예외 던져서 에러 처리함
 
