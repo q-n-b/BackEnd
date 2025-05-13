@@ -104,24 +104,39 @@ public class AuthController {
         }
     }
 
-
-
-    // 로그인 API
+    
+    //로그인 API
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
         Optional<User> optionalUser = userRepository.findByUserEmail(request.getUserEmail());
         if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 일치하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    Map.of("errorCode", "INVALID_CREDENTIALS", "errorMessage", "이메일 또는 비밀번호가 일치하지 않습니다.")
+            );
         }
 
         User user = optionalUser.get();
 
         if (!passwordEncoder.matches(request.getUserPassword(), user.getUserPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 일치하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    Map.of("errorCode", "INVALID_CREDENTIALS", "errorMessage", "이메일 또는 비밀번호가 일치하지 않습니다.")
+            );
         }
 
+        // 1. AccessToken & RefreshToken 발급
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserEmail());
 
-        return ResponseEntity.ok(new LoginResponseDto(accessToken));
+        // 2. RefreshToken 저장 (기존 사용자면 덮어쓰기)
+        RefreshToken token = new RefreshToken(user.getUserEmail(), refreshToken);
+        refreshTokenRepository.save(token);
+
+        // 3. 응답 반환
+        return ResponseEntity.ok(Map.of(
+                "message", "로그인에 성공했습니다.",
+                "accessToken", accessToken,
+                "refreshToken", refreshToken
+        ));
     }
+
 }
