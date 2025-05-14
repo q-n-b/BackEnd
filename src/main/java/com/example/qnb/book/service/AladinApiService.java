@@ -30,12 +30,20 @@ public class AladinApiService {
 
         while (true) {
             String url = String.format(
-                    "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey=%s&QueryType=Bestseller&MaxResults=100&start=%d&SearchTarget=Book&output=js&CategoryId=%d",
+                    "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey=%s&QueryType=Bestseller&MaxResults=100&start=%d&SearchTarget=Book&output=js&CategoryId=%d&Version=20131101",
                     ttbKey, page, categoryId
             );
 
+            //디버깅용 코드
+            //System.out.println("▶ API 호출 URL: " + url);
+
             try {
                 ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+
+                //✅ [2단계] API 응답 본문 로그 출력
+                System.out.println("▶ API 응답 내용:");
+                System.out.println(response.getBody());
+
                 List<Map<String, Object>> items = (List<Map<String, Object>>) response.getBody().get("item");
 
                 if (items == null || items.isEmpty()) {
@@ -77,6 +85,7 @@ public class AladinApiService {
                 System.err.println("API 요청 실패 (page " + page + "): " + e.getMessage());
                 break;
             }
+
         }
     }
 }
