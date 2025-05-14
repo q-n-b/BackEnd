@@ -1,32 +1,35 @@
 server:
-  port: 8080  # ← 이게 8081이나 다른 숫자면 그 포트로 요청 보내야 함
-  address: 0.0.0.0
+  port: 8080  # 기본 포트, 프론트나 Postman에서 요청 시 이 포트로 요청
+  address: 0.0.0.0  # 외부에서도 접근 가능하도록 설정
 
 spring:
+  # 실제 사용하는 내 DB
   datasource:
     url: jdbc:mysql://localhost:3306/qnb_database
     username: root
     password: "Dang1216@@"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  spring:
-    jpa:
+  jpa:
+    hibernate:
+      ddl-auto: update  # 개발 중에는 update, 배포 시에는 validate 또는 none 권장
+    properties:
       hibernate:
-        ddl-auto: none
-      properties:
-        hibernate:
-          format_sql: true
-          dialect: org.hibernate.dialect.MySQL8Dialect
-          globally_quoted_identifiers: true
-          naming:
-            physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-    datasource:
-      url: jdbc:mysql://localhost:3306/qnb_database
-      username: root
-      password: Dang1216@@
+        format_sql: true  # SQL 쿼리를 예쁘게 출력
+        dialect: org.hibernate.dialect.MySQL8Dialect  # MySQL8 전용 방언
+        globally_quoted_identifiers: true
+        naming:
+          physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
 
+  jackson:
+    serialization:
+      fail-on-empty-beans: false  # Bean에 필드가 없어도 직렬화 오류 발생하지 않도록 설정
 
-
+# JWT 설정 (보안 키와 만료 시간)
 jwt:
   secret: my-very-secret-jwt-key-that-should-be-long
-  expiration: 3600000 //키 외부화와 만료 시간 설정
+  expiration: 3600000  # 만료 시간 (1시간 = 3600000ms)
+
+# 알라딘 오픈 API 키 (외부 도서 데이터 수집용)
+aladin:
+  ttbkey: ttbsally1023p1354001
