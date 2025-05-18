@@ -1,5 +1,4 @@
 package com.example.qnb.book.service;
-//알라딘 API 호출 서비스
 
 import com.example.qnb.book.entity.Book;
 import com.example.qnb.book.repository.BookRepository;
@@ -30,7 +29,7 @@ public class AladinApiService {
 
         while (true) {
             String url = String.format(
-                    "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey=%s&QueryType=Bestseller&MaxResults=100&start=%d&SearchTarget=Book&output=js&CategoryId=%d&Version=20131101",
+                    "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey=%s&QueryType=ItemNewSpecial&MaxResults=100&start=%d&SearchTarget=Book&output=js&CategoryId=%d&Version=20131101",
                     ttbKey, page, categoryId
             );
 
@@ -82,7 +81,7 @@ public class AladinApiService {
                 page++; // 다음 페이지로
 
             } catch (Exception e) {
-                System.err.println("API 요청 실패 (page " + page + "): " + e.getMessage());
+                System.err.printf("API 요청 실패 (%s, page %d): %s\n", genre, page, e.getMessage());
                 break;
             }
 
