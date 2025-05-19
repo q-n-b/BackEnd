@@ -46,11 +46,18 @@ public class BookController {
             @RequestParam(required = false) Integer bookId,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size
+            @RequestParam(required = false, defaultValue = "10") int size,
+            @RequestParam(required = false) Integer limit
     ) {
         return switch (type) {
-            case "recommendations" ->
-                    ResponseEntity.ok(bookService.getRecommendedBooks()); // 전체 추천 도서
+            case "recommendations" -> {
+                if (limit != null && limit == 1) {
+                    // 개인 추천 도서 1권 조회
+                    yield ResponseEntity.ok(bookService.getSingleRecommendedBook());
+                }
+                // 개인 추천 도서 전체 조회
+                yield ResponseEntity.ok(bookService.getRecommendedBooks());
+            }
 
             case "category-recommendations" ->
                     ResponseEntity.ok(bookService.getRecommendedBooksByGenre(category)); // 장르별 추천 도서
