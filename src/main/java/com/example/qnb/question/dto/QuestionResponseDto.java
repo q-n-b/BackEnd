@@ -11,6 +11,7 @@ public class QuestionResponseDto {
     private final Integer questionId;      // 질문 ID
     private final Integer bookId;          // 도서 ID
     private final Long userId;             // 질문 작성자 ID
+    private final String userNickname;     // 질문 작성자 닉네임
     private final String questionContent;  // 질문 내용
     private final Integer likeCount;       // 좋아요 수
     private final Integer scrapCount;      // 스크랩 수
@@ -21,6 +22,7 @@ public class QuestionResponseDto {
         this.questionId = question.getQuestionId();
         this.bookId = question.getBookId();
         this.userId = question.getUserId();
+        this.userNickname = question.getUserNickname();
         this.questionContent = question.getQuestionContent();
         this.likeCount = question.getLikeCount();
         this.scrapCount = question.getScrapCount();

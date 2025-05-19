@@ -78,11 +78,15 @@ public class BookService {
     // 5. 특정 도서의 질문 리스트 조회
     public Page<QuestionResponseDto> getBookQuestions(Integer bookId, String sort, Pageable pageable) {
         Page<Question> questions;
-        if ("latest".equals(sort)) {
-            questions = questionRepository.findByBookIdOrderByCreatedAtDesc(bookId, pageable);
+
+        if ("popular".equals(sort)) {
+            questions = questionRepository.findWithGptTopByBookIdOrderByLikeCountDesc(bookId, pageable);
         } else {
-            questions = questionRepository.findByBookId(bookId, pageable);
+            questions = questionRepository.findWithGptTopByBookIdOrderByCreatedAtDesc(bookId, pageable);
         }
+
         return questions.map(QuestionResponseDto::new);
     }
+
+
 }

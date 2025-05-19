@@ -20,6 +20,9 @@ public class Question {
     @Column(nullable = false)
     private Long userId; // 질문을 등록한 사용자 ID
 
+    @Column(nullable = false)
+    private String userNickname; //사용자 닉네임
+
     @Column(columnDefinition = "TEXT", nullable = false)
     private String questionContent; // 질문 내용
 
