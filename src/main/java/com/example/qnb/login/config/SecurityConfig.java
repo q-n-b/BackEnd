@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/signup", "/api/users/login").permitAll() // ✅ 공개 경로
+                        .requestMatchers("/api/books/**").authenticated()
                         .requestMatchers("/api/users/preferences").authenticated() // ✅ 보호 경로
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
@@ -70,6 +71,4 @@ public class SecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
     }
-
-
 }

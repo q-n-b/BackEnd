@@ -2,6 +2,7 @@ package com.example.qnb.question.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -20,15 +21,17 @@ public class Question {
     @Column(nullable = false)
     private Long userId; // 질문을 등록한 사용자 ID
 
-    @Column(nullable = false)
+    @Column(nullable = false,length = 50)
     private String userNickname; //사용자 닉네임
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String questionContent; // 질문 내용
 
-    private Integer likeCount; // 좋아요 수
+    //안정적으로 사용하기 위해 0으로 초기화
+    private Integer likeCount=0; // 좋아요 수
 
-    private Integer scrapCount; // 스크랩 수
+    private Integer scrapCount=0; // 스크랩 수
 
+    @CreationTimestamp //작성일시 save()할 때 자동으로 시간 넣어주는 어노테이션
     private LocalDateTime createdAt; // 작성일시
 }

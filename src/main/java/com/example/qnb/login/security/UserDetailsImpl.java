@@ -3,9 +3,11 @@ package com.example.qnb.login.security;
 import com.example.qnb.login.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Getter
 public class UserDetailsImpl implements UserDetails {
@@ -16,13 +18,17 @@ public class UserDetailsImpl implements UserDetails {
         this.user = user;
     }
 
+    public String getNickname() {
+        return user.getUserNickname();
+    }
+
     public Long getUserId() {
         return user.getUserId(); // ← Entity에 따라 필드명 확인
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // 권한 필요 없으면 비워도 됨
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override

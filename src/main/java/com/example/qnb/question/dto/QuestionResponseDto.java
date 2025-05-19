@@ -1,4 +1,5 @@
 package com.example.qnb.question.dto;
+//질문 Response DTO
 
 import com.example.qnb.question.entity.Question;
 import lombok.Getter;
@@ -6,6 +7,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
+
 public class QuestionResponseDto {
 
     private final Integer questionId;      // 질문 ID

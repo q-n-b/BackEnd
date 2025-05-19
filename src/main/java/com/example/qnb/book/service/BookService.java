@@ -30,6 +30,11 @@ public class BookService {
         this.questionRepository = questionRepository;
     }
 
+    //도서 존재 여부 로직
+    public boolean existsById(Integer bookId) {
+        return bookRepository.existsById(bookId);
+    }
+
     // 0. 개인 추천 도서 1권 조회 (추천 이유 포함)
     public SingleRecommendedBookResponseDto getSingleRecommendedBook() {
         UserRecommendedBook rec = recommendedBookRepository
