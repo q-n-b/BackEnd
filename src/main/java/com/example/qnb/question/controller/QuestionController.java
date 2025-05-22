@@ -19,14 +19,14 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/books")
+@RequestMapping("/api/books/{bookId}")
 public class QuestionController {
 
     private final QuestionService questionService;
     private final BookService bookService;
 
     // 질문 등록 API
-    @PostMapping("/{bookId}/questions")
+    @PostMapping("/questions")
     public ResponseEntity<?> registerQuestion(
             @PathVariable Integer bookId,
             @RequestBody @Valid QuestionRequestDto dto,
@@ -54,5 +54,31 @@ public class QuestionController {
                 "message", "질문이 등록되었습니다."
         ));
     }
+
+    //질문 수정 API
+    @PutMapping("/questions/{questionId}")
+    public ResponseEntity<?> updateQuestion(
+            @PathVariable Integer questionId,
+            @RequestBody @Valid QuestionRequestDto dto,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        if (userDetails == null) {
+            throw new LoginRequiredException(); // 401 처리
+        }
+
+        Long userId = userDetails.getUserId();
+        String profileUrl = userDetails.getprofileUrl();
+
+        Question updatedQuestion = questionService.updateQuestion(questionId, userId, dto);
+        int answerCount = 0; // 나중에 answerCount 받게하기
+
+        QuestionResponseDto responseDto = new QuestionResponseDto(updatedQuestion, answerCount, profileUrl);
+
+        return ResponseEntity.ok(Map.of(
+                "data", responseDto,
+                "message", "질문이 성공적으로 수정되었습니다."
+        ));
+    }
+
 }
 
