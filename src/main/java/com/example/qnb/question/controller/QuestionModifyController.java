@@ -35,7 +35,7 @@ public class QuestionModifyController {
         }
 
         Long userId = userDetails.getUserId();
-        String profileUrl = userDetails.getprofileUrl();
+        String profileUrl = userDetails.getProfileUrl();
 
         Question updatedQuestion = questionService.updateQuestion(questionId, userId, dto);
         int answerCount = 0; // 나중에 answerCount 받게하기

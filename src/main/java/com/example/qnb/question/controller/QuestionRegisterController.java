@@ -42,7 +42,7 @@ public class QuestionRegisterController {
         }
 
         Long userId = userDetails.getUserId();
-        String profileUrl = userDetails.getprofileUrl();
+        String profileUrl = userDetails.getProfileUrl();
 
         Question savedQuestion = questionService.createQuestion(userId, bookId, dto);
 

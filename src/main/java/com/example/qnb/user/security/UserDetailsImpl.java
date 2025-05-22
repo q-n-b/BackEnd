@@ -21,7 +21,7 @@ public class UserDetailsImpl implements UserDetails {
         return user.getUserNickname();
     }
 
-    public String getprofileUrl(){
+    public String getProfileUrl(){
         return user.getProfileUrl();
     }
 
