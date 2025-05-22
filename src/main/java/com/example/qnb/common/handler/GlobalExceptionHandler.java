@@ -58,6 +58,17 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    //답변이 없을 때
+    @ExceptionHandler(AnswerNotFoundException.class)
+    public ResponseEntity<?> handleAnswerNotFound(AnswerNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of(
+                        "errorCode", "ANSWER_NOT_FOUND",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
 
     //질문 찾을 수 없을 때
     @ExceptionHandler(QuestionNotFoundException.class)
