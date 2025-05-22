@@ -1,11 +1,9 @@
 package com.example.qnb.common.handler;
 
-import com.example.qnb.common.exception.BookNotFoundException;
-import com.example.qnb.common.exception.LoginRequiredException;
-import com.example.qnb.common.exception.QuestionNotFoundException;
-import com.example.qnb.common.exception.UnauthorizedAccessException;
+import com.example.qnb.common.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,6 +12,52 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    //이메일 형식 유효하지 않을 때
+    @ExceptionHandler(InvalidEmailFormatException.class)
+    public ResponseEntity<?> handleInvalidEmailFormat(InvalidEmailFormatException ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "errorCode", "INVALID_EMAIL",
+                "errorMessage", ex.getMessage()
+        ));
+    }
+
+    //이메일이 이미 존재할 때
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<?> handleEmailExists(EmailAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "errorCode", "EMAIL_ALREADY_EXISTS",
+                "errorMessage", ex.getMessage()
+        ));
+    }
+
+    //confirmPassword에서 비밀번호 일치하지 않을 때
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<?> handlePasswordMismatch(PasswordMismatchException ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "errorCode", "PASSWORD_MISMATCH",
+                "errorMessage", ex.getMessage()
+        ));
+    }
+
+    //필수 입력 항목 누락
+    @ExceptionHandler(MissingFieldException.class)
+    public ResponseEntity<?> handleMissingField(MissingFieldException ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "errorCode", "MISSING_FIELD",
+                "errorMessage", ex.getMessage()
+        ));
+    }
+
+    //비번 또는 이메일이 올바르지 않을 때
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<?> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                "errorCode", "INVALID_CREDENTIALS",
+                "errorMessage", ex.getMessage()
+        ));
+    }
+
 
     //질문 찾을 수 없을 때
     @ExceptionHandler(QuestionNotFoundException.class)
@@ -71,6 +115,16 @@ public class GlobalExceptionHandler {
                 "message", "서버 에러가 발생했습니다."
         ));
     }
+
+    //접근 권한 부족
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                "errorCode", "FORBIDDEN",
+                "errorMessage", "접근 권한이 없습니다."
+        ));
+    }
+
 
 
 }

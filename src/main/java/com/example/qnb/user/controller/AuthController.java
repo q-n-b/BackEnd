@@ -1,5 +1,6 @@
 package com.example.qnb.user.controller;
 
+import com.example.qnb.common.exception.*;
 import com.example.qnb.user.JWT.JwtTokenProvider;
 import com.example.qnb.user.dto.LoginRequestDto;
 import com.example.qnb.user.dto.SignupRequestDto;
@@ -8,7 +9,7 @@ import com.example.qnb.user.entity.User;
 import com.example.qnb.user.repository.RefreshTokenRepository;
 import com.example.qnb.user.repository.UserRepository;
 import com.example.qnb.user.service.UserService;
-
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,38 +39,31 @@ public class AuthController {
     public ResponseEntity<?> register(
             @RequestPart("data") SignupRequestDto request,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
+
+        // 1. 이메일 형식 유효성 검사
+        if (!request.getUserEmail().matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new InvalidEmailFormatException();
+        }
+
+        // 2. 이메일 중복 체크
+        if (userRepository.findByUserEmail(request.getUserEmail()).isPresent()) {
+            throw new EmailAlreadyExistsException();
+        }
+
+        // 3. 비밀번호 일치 확인
+        if (!request.getUserPassword().equals(request.getConfirmPassword())) {
+            throw new PasswordMismatchException();
+        }
+
+        // 4. 필수값 누락 확인
+        if (request.getUserEmail() == null || request.getUserPassword() == null ||
+                request.getConfirmPassword() == null || request.getName() == null) {
+            throw new MissingFieldException();
+        }
+
+        // 5. 프로필 이미지 저장 처리
+        String profileUrl = null;
         try {
-            // 1. 이메일 형식 유효성 검사
-            if (!request.getUserEmail().matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
-                return ResponseEntity.badRequest().body(
-                        Map.of("errorCode", "INVALID_EMAIL", "errorMessage", "이메일 형식이 올바르지 않습니다.")
-                );
-            }
-
-            // 2. 이메일 중복 체크
-            if (userRepository.findByUserEmail(request.getUserEmail()).isPresent()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                        Map.of("errorCode", "EMAIL_ALREADY_EXISTS", "errorMessage", "이미 사용 중인 이메일입니다.")
-                );
-            }
-
-            // 3. 비밀번호 일치 확인
-            if (!request.getUserPassword().equals(request.getConfirmPassword())) {
-                return ResponseEntity.badRequest().body(
-                        Map.of("errorCode", "PASSWORD_MISMATCH", "errorMessage", "비밀번호가 일치하지 않습니다.")
-                );
-            }
-
-            // 4. 필수값 누락 확인
-            if (request.getUserEmail() == null || request.getUserPassword() == null ||
-                    request.getConfirmPassword() == null || request.getName() == null) {
-                return ResponseEntity.badRequest().body(
-                        Map.of("errorCode", "MISSING_FIELD", "errorMessage", "필수 입력 항목이 누락되었습니다.")
-                );
-            }
-
-            // 5. 프로필 이미지 저장 처리
-            String profileUrl = null;
             if (profileImage != null && !profileImage.isEmpty()) {
                 String fileName = UUID.randomUUID() + "_" + profileImage.getOriginalFilename();
                 String savePath = "/your/save/path/" + fileName;
@@ -77,93 +71,66 @@ public class AuthController {
                 profileUrl = "/images/" + fileName;
             }
             request.setProfileUrl(profileUrl);
-
-            // 6. 회원 등록
-            User user = userService.registerUser(request);
-
-            // 7. Access Token & Refresh Token 발급
-            String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
-            String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserEmail());
-
-
-            // 8. RefreshToken 저장
-            RefreshToken token = new RefreshToken(user.getUserEmail(), refreshToken);
-            refreshTokenRepository.save(token);
-
-            // 9. 응답 반환
-            return ResponseEntity.ok(Map.of(
-                    "message", "회원가입이 완료되었습니다.",
-                    "accessToken", accessToken,
-                    "refreshToken", refreshToken
-            ));
-
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    Map.of("errorCode", "INTERNAL_SERVER_ERROR", "errorMessage", "서버 오류가 발생했습니다.")
+                    Map.of("errorCode", "IMAGE_SAVE_FAILED", "errorMessage", "프로필 이미지 저장 중 오류가 발생했습니다.")
             );
         }
+
+        // 6. 회원 등록
+        User user = userService.registerUser(request);
+
+        // 7. Access Token & Refresh Token 발급
+        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserEmail());
+
+        // 8. RefreshToken 저장
+        RefreshToken token = new RefreshToken(user.getUserEmail(), refreshToken);
+        refreshTokenRepository.save(token);
+
+        // 9. 응답 반환
+        return ResponseEntity.ok(Map.of(
+                "message", "회원가입이 완료되었습니다.",
+                "accessToken", accessToken,
+                "refreshToken", refreshToken
+        ));
     }
 
-
-    //로그인 API
+    // 로그인 API
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
-        try {
-            // 1. 필수 입력값 누락 확인
-            if (request.getUserEmail() == null || request.getUserPassword() == null) {
-                return ResponseEntity.badRequest().body(
-                        Map.of(
-                                "errorCode", "MISSING_FIELD",
-                                "errorMessage", "필수 입력 항목이 누락되었습니다."
-                        )
-                );
-            }
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDto request) {
 
-            // 2. 이메일 존재 확인
-            Optional<User> optionalUser = userRepository.findByUserEmail(request.getUserEmail());
-            if (optionalUser.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                        Map.of(
-                                "errorCode", "INVALID_CREDENTIALS",
-                                "errorMessage", "이메일 또는 비밀번호가 올바르지 않습니다."
-                        )
-                );
-            }
-
-            User user = optionalUser.get();
-
-            // 3. 비밀번호 일치 확인
-            if (!passwordEncoder.matches(request.getUserPassword(), user.getUserPassword())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                        Map.of(
-                                "errorCode", "INVALID_CREDENTIALS",
-                                "errorMessage", "이메일 또는 비밀번호가 올바르지 않습니다."
-                        )
-                );
-            }
-
-            // 4. 토큰 발급
-            String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
-            String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserEmail());
-
-            // 5. RefreshToken 저장
-            RefreshToken token = new RefreshToken(user.getUserEmail(), refreshToken);
-            refreshTokenRepository.save(token);
-
-            // 6. 성공 응답
-            return ResponseEntity.ok(Map.of(
-                    "message", "로그인에 성공했습니다.",
-                    "accessToken", accessToken,
-                    "refreshToken", refreshToken
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    Map.of(
-                            "errorCode", "INTERNAL_SERVER_ERROR",
-                            "errorMessage", "서버 오류가 발생했습니다."
-                    )
-            );
+        // 1. 필수 입력값 누락 확인
+        if (request.getUserEmail() == null || request.getUserPassword() == null) {
+            throw new MissingFieldException();
         }
+
+        // 2. 이메일 존재 확인
+        Optional<User> optionalUser = userRepository.findByUserEmail(request.getUserEmail());
+        if (optionalUser.isEmpty()) {
+            throw new InvalidCredentialsException();
+        }
+
+        User user = optionalUser.get();
+
+        // 3. 비밀번호 일치 확인
+        if (!passwordEncoder.matches(request.getUserPassword(), user.getUserPassword())) {
+            throw new InvalidCredentialsException();
+        }
+
+        // 4. 토큰 발급
+        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserEmail());
+
+        // 5. RefreshToken 저장
+        RefreshToken token = new RefreshToken(user.getUserEmail(), refreshToken);
+        refreshTokenRepository.save(token);
+
+        // 6. 성공 응답
+        return ResponseEntity.ok(Map.of(
+                "message", "로그인에 성공했습니다.",
+                "accessToken", accessToken,
+                "refreshToken", refreshToken
+        ));
     }
 }
