@@ -1,6 +1,6 @@
 package com.example.qnb.question.entity;
 
-import com.example.qnb.login.entity.User;
+import com.example.qnb.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;

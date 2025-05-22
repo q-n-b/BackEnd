@@ -1,8 +1,8 @@
 package com.example.qnb.question.service;
 //QuestionService 파일
 
-import com.example.qnb.login.entity.User;
-import com.example.qnb.login.repository.UserRepository;
+import com.example.qnb.user.entity.User;
+import com.example.qnb.user.repository.UserRepository;
 import com.example.qnb.question.dto.QuestionRequestDto;
 import com.example.qnb.question.entity.Question;
 import com.example.qnb.question.repository.QuestionRepository;
