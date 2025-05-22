@@ -90,7 +90,17 @@ public class BookService {
             questions = questionRepository.findWithGptTopByBookIdOrderByCreatedAtDesc(bookId, pageable);
         }
 
-        return questions.map(QuestionResponseDto::new);
+        return questions.map(question -> {
+            String profileUrl = question.getUser().getProfileUrl(); // ← 여기서 꺼내옴
+            int answerCount = 0; // 나중에 실제 answerCount 구하는 로직 넣기
+
+            return new QuestionResponseDto(
+                    question,
+                    answerCount,
+                    profileUrl
+            );
+        });
+
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.qnb.question.entity;
 
+import com.example.qnb.login.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,11 +19,9 @@ public class Question {
     @Column(nullable = false)
     private Integer bookId; // 도서 ID (Book과의 연관관계 설정 가능)
 
-    @Column(nullable = false)
-    private Long userId; // 질문을 등록한 사용자 ID
-
-    @Column(nullable = false,length = 50)
-    private String userNickname; //사용자 닉네임
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; //userId,userNikckname,profileurl 대체
 
     @Column(columnDefinition = "TEXT")
     private String questionContent; // 질문 내용

@@ -3,6 +3,8 @@ package com.example.qnb.question.controller;
 import com.example.qnb.book.service.BookService;
 import com.example.qnb.login.security.UserDetailsImpl;
 import com.example.qnb.question.dto.QuestionRequestDto;
+import com.example.qnb.question.dto.QuestionResponseDto;
+import com.example.qnb.question.entity.Question;
 import com.example.qnb.question.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,7 @@ public class QuestionController {
         try {
             Long userId = userDetails.getUserId();
             String userNickname = userDetails.getNickname();
+            String profileUrl = userDetails.getprofileUrl();
 
             // 404 Not Found: 존재하지 않는 bookId인 경우
             if (!bookService.existsById(bookId)) {
@@ -49,11 +52,15 @@ public class QuestionController {
                 ));
             }
 
-            // 질문 생성 서비스 호출
-            questionService.createQuestion(userId, userNickname, bookId, dto);
+            // 질문 등록 및 저장된 엔티티 반환
+            Question savedQuestion = questionService.createQuestion(userId, bookId, dto);
+
+            // 답변 개수는 기본 0으로 반환
+            int answerCount = 0;
+            QuestionResponseDto responseDto = new QuestionResponseDto(savedQuestion, answerCount, profileUrl);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-                    "questionId", null,  // 생성된 ID가 있다면 여기에 반환 가능
+                    "data", responseDto,
                     "message", "질문이 등록되었습니다."
             ));
         } catch (Exception e) {
@@ -65,7 +72,6 @@ public class QuestionController {
             ));
         }
     }
-
 
     //400 Bad Request: 유효성 검사 실패 (예: 질문 내용이 비어있음)
     @ExceptionHandler(MethodArgumentNotValidException.class)

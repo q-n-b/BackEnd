@@ -22,9 +22,14 @@ public class UserDetailsImpl implements UserDetails {
         return user.getUserNickname();
     }
 
+    public String getprofileUrl(){
+        return user.getProfileUrl();
+    }
+
     public Long getUserId() {
         return user.getUserId(); // ← Entity에 따라 필드명 확인
     }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

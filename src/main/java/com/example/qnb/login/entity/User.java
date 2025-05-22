@@ -1,8 +1,11 @@
 package com.example.qnb.login.entity;
 
+import com.example.qnb.question.entity.Question;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "`USER`")  // 예약어 우려 줄이기 위해 백틱 사용
@@ -29,6 +32,8 @@ public class User {
 
     private String userNickname; //닉네임은 필수 아님
 
+    private String profileUrl; //필수 아님
+
     @Column(nullable = false)
     private LocalDate birthDate;
 
@@ -41,6 +46,9 @@ public class User {
 
     private String readingTaste;
 
-    private String profileUrl;
+    //question과 역방향 관계 추가 -> 사용자별 질문 목록 조회 시 필요
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Question> questions = new ArrayList<>();
+
 
 }

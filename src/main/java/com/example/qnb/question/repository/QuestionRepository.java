@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-// QuestionRepository.java
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
@@ -16,11 +15,12 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     Page<Question> findByBookId(Integer bookId, Pageable pageable);
 
     // 최신순 정렬 + GPT 우선
+    //userNickname이 "GPT"인 질문은 CASE WHEN에서 0 → 가장 우선순위
     @Query("""
     SELECT q FROM Question q
     WHERE q.bookId = :bookId
     ORDER BY 
-        CASE WHEN q.userNickname = 'GPT' THEN 0 ELSE 1 END, 
+        CASE WHEN q.user.userNickname = 'GPT' THEN 0 ELSE 1 END, 
         q.createdAt DESC
     """)
     Page<Question> findWithGptTopByBookIdOrderByCreatedAtDesc(
@@ -28,18 +28,18 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             Pageable pageable
     );
 
-    // 인기순 정렬 + GPT 우선
     @Query("""
     SELECT q FROM Question q
     WHERE q.bookId = :bookId
     ORDER BY 
-        CASE WHEN q.userNickname = 'GPT' THEN 0 ELSE 1 END, 
+        CASE WHEN q.user.userNickname = 'GPT' THEN 0 ELSE 1 END, 
         q.likeCount DESC
     """)
     Page<Question> findWithGptTopByBookIdOrderByLikeCountDesc(
             @Param("bookId") Integer bookId,
             Pageable pageable
     );
+
 
 
 }
