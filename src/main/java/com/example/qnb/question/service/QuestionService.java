@@ -53,4 +53,18 @@ public class QuestionService {
         return questionRepository.save(question);
     }
 
+    //질문 삭제 API
+    @Transactional
+    public void deleteQuestion(Integer questionId, Long userId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(QuestionNotFoundException::new); // 404
+
+        if (!question.getUser().getUserId().equals(userId)) {
+            throw new UnauthorizedAccessException(); // 403
+        }
+
+        questionRepository.delete(question);
+    }
+
+
 }
