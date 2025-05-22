@@ -19,7 +19,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long userId; //사용자의 고유 ID
 
     @Column(nullable = false, unique = true)
     private String userEmail;
@@ -28,7 +28,7 @@ public class User {
     private String userPassword;
 
     @Column(nullable = false)
-    private String name;
+    private String name; //사용자의 실명
 
     private String userNickname; //닉네임은 필수 아님
 

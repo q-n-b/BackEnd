@@ -28,5 +28,11 @@ public class Answer {
 
     private int likeCount = 0;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    //DB 저장 직전에 자동으로 createdAt이 세팅됨
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

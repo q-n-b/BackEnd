@@ -17,7 +17,7 @@ public class UserDetailsImpl implements UserDetails {
         this.user = user;
     }
 
-    public String getNickname() {
+    public String getUserNickname() {
         return user.getUserNickname();
     }
 
@@ -28,7 +28,6 @@ public class UserDetailsImpl implements UserDetails {
     public Long getUserId() {
         return user.getUserId(); // ← Entity에 따라 필드명 확인
     }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -42,7 +41,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUserEmail(); // User 엔티티 이메일 필드명 확인
+        return user.getName(); // User 엔티티 이메일 필드명 확인
     }
 
     @Override public boolean isAccountNonExpired() { return true; }

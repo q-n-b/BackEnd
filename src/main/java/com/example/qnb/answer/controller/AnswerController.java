@@ -23,7 +23,7 @@ public class AnswerController {
         AnswerResponseDto response = answerService.registerAnswer(
                 questionId,
                 userDetails.getUserId(),
-                userDetails.getUsername(),
+                userDetails.getUserNickname(),
                 userDetails.getProfileUrl(),
                 dto
         );
