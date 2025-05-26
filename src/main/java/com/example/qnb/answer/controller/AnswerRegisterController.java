@@ -11,13 +11,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/questions")
 @RequiredArgsConstructor
-public class AnswerController {
+public class AnswerRegisterController {
 
     private final AnswerService answerService;
 
+    //답변 등록
     @PostMapping("/{questionId}/answers")
     public ResponseEntity<?> registerAnswer(@PathVariable Long questionId,
                                             @RequestBody AnswerRequestDto dto,
@@ -52,4 +56,5 @@ public class AnswerController {
                 )
         );
     }
+
 }
