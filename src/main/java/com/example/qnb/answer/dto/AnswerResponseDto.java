@@ -1,8 +1,15 @@
 package com.example.qnb.answer.dto;
 
 import com.example.qnb.answer.entity.Answer;
+import com.example.qnb.user.entity.User;
+import com.example.qnb.user.repository.UserRepository;
+import com.example.qnb.user.service.UserService;
+
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -26,9 +33,10 @@ public class AnswerResponseDto {
         this.answerContent = answer.getAnswerContent();
         this.answerState = answer.getAnswerState();
         this.likeCount = answer.getLikeCount();
-        this.createdAt = answer.getCreatedAt().toString();
+        this.createdAt = Optional.ofNullable(answer.getCreatedAt())
+                .map(LocalDateTime::toString)
+                .orElse(null);
+
     }
-
-
 
 }

@@ -7,6 +7,9 @@ import com.example.qnb.answer.repository.AnswerRepository;
 import com.example.qnb.common.exception.InvalidCredentialsException;
 import com.example.qnb.common.exception.UnauthorizedAccessException;
 import com.example.qnb.common.exception.AnswerNotFoundException;
+import com.example.qnb.common.exception.UserNotFoundException;
+import com.example.qnb.user.entity.User;
+import com.example.qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnswerService {
 
     private final AnswerRepository answerRepository;
+    private final UserRepository userRepository;
 
     //답변 등록
     public AnswerResponseDto registerAnswer(Long questionId, Long userId, String userNickname, String profileUrl, AnswerRequestDto dto) {
@@ -31,6 +35,7 @@ public class AnswerService {
         return new AnswerResponseDto(questionId, saved, userId.toString(), userNickname, profileUrl);
     }
 
+    //답변 수정
     @Transactional
     public AnswerResponseDto updateAnswer(Long answerId, AnswerRequestDto dto, Long loginUserId) {
 
@@ -50,12 +55,16 @@ public class AnswerService {
         answer.setAnswerContent(dto.getAnswerContent());
         answer.setAnswerState(dto.getAnswerState());
 
+        User user = userRepository.findById(answer.getUserId())
+                .orElseThrow(UserNotFoundException::new);
+
+
         return new AnswerResponseDto(
                 answer.getQuestionId(),
                 answer,
                 String.valueOf(answer.getUserId()), // 또는 answer.getUser().getUserId() → String 변환
-                answer.getUser().getUserNickname(),
-                answer.getUser().getProfileUrl()
+                user.getUserNickname(),
+                user.getProfileUrl()
         );
 
     }

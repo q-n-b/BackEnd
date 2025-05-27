@@ -16,11 +16,8 @@ public class Answer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long answerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private User user;
-
-    private Long userId;
+    @Column(name = "user_id")
+    private Long userId;  // 아무 어노테이션도 붙이지 마
 
     @Column(nullable = false)
     private Long questionId;
@@ -33,12 +30,13 @@ public class Answer {
 
     private int likeCount = 0;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    //DB 저장 직전에 자동으로 createdAt이 세팅됨
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
 
 }
