@@ -1,5 +1,6 @@
 package com.example.qnb.answer.entity;
 
+import com.example.qnb.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -14,6 +15,10 @@ public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long answerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 
     private Long userId;
 
@@ -35,4 +40,5 @@ public class Answer {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
 }

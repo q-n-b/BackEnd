@@ -4,6 +4,7 @@ import com.example.qnb.answer.dto.AnswerRequestDto;
 import com.example.qnb.answer.dto.AnswerResponseDto;
 import com.example.qnb.answer.entity.Answer;
 import com.example.qnb.answer.repository.AnswerRepository;
+import com.example.qnb.common.exception.InvalidCredentialsException;
 import com.example.qnb.common.exception.UnauthorizedAccessException;
 import com.example.qnb.common.exception.AnswerNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ public class AnswerService {
 
     private final AnswerRepository answerRepository;
 
+    //답변 등록
     public AnswerResponseDto registerAnswer(Long questionId, Long userId, String userNickname, String profileUrl, AnswerRequestDto dto) {
         Answer answer = Answer.builder()
                 .questionId(questionId)
@@ -29,7 +31,36 @@ public class AnswerService {
         return new AnswerResponseDto(questionId, saved, userId.toString(), userNickname, profileUrl);
     }
 
+    @Transactional
+    public AnswerResponseDto updateAnswer(Long answerId, AnswerRequestDto dto, Long loginUserId) {
 
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(AnswerNotFoundException::new); // 404
+
+        if (!answer.getUserId().equals(loginUserId)) {
+            throw new UnauthorizedAccessException(); // 403
+        }
+
+        // 유효성 검사 (비어있거나 제한 위반 시)
+        if (dto.getAnswerContent() == null || dto.getAnswerContent().trim().isEmpty()
+                || dto.getAnswerContent().length() > 1000) {
+            throw new InvalidCredentialsException(); // 400
+        }
+
+        answer.setAnswerContent(dto.getAnswerContent());
+        answer.setAnswerState(dto.getAnswerState());
+
+        return new AnswerResponseDto(
+                answer.getQuestionId(),
+                answer,
+                String.valueOf(answer.getUserId()), // 또는 answer.getUser().getUserId() → String 변환
+                answer.getUser().getUserNickname(),
+                answer.getUser().getProfileUrl()
+        );
+
+    }
+
+    //답변 삭제
     @Transactional
     public void deleteAnswer(Long answerId, Long loginUserId) {
         Answer answer = answerRepository.findById(answerId)

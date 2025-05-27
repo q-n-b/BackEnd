@@ -28,4 +28,7 @@ public class AnswerResponseDto {
         this.likeCount = answer.getLikeCount();
         this.createdAt = answer.getCreatedAt().toString();
     }
+
+
+
 }
