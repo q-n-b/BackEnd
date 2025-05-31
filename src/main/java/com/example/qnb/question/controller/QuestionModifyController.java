@@ -1,5 +1,6 @@
 package com.example.qnb.question.controller;
 
+import com.example.qnb.book.dto.BookResponseDto;
 import com.example.qnb.common.exception.BookNotFoundException;
 import com.example.qnb.common.exception.LoginRequiredException;
 import com.example.qnb.common.exception.QuestionNotFoundException;
@@ -35,18 +36,29 @@ public class QuestionModifyController {
         }
 
         Long userId = userDetails.getUserId();
-        String profileUrl = userDetails.getProfileUrl();
 
         Question updatedQuestion = questionService.updateQuestion(questionId, userId, dto);
-        int answerCount = 0; // 나중에 answerCount 받게하기
+        int answerCount = 0; // TODO: 실제 답변 수 계산 로직 넣기
 
-        QuestionResponseDto responseDto = new QuestionResponseDto(updatedQuestion, answerCount, profileUrl);
+        QuestionResponseDto responseDto = new QuestionResponseDto(
+                BookResponseDto.from(updatedQuestion.getBook()),
+                updatedQuestion.getUser().getUserId(),
+                updatedQuestion.getQuestionId(),
+                updatedQuestion.getUser().getUserNickname(),
+                updatedQuestion.getUser().getProfileUrl(),
+                updatedQuestion.getQuestionContent(),
+                answerCount,
+                updatedQuestion.getLikeCount(),
+                updatedQuestion.getScrapCount(),
+                updatedQuestion.getCreatedAt()
+        );
 
         return ResponseEntity.ok(Map.of(
                 "data", responseDto,
                 "message", "질문이 성공적으로 수정되었습니다."
         ));
     }
+
 
     //질문 삭제 API
     @DeleteMapping("/{questionId}")

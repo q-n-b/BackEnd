@@ -1,5 +1,6 @@
 package com.example.qnb.question.controller;
 
+import com.example.qnb.book.dto.BookResponseDto;
 import com.example.qnb.book.service.BookService;
 import com.example.qnb.common.exception.BookNotFoundException;
 import com.example.qnb.common.exception.LoginRequiredException;
@@ -47,7 +48,18 @@ public class QuestionRegisterController {
         Question savedQuestion = questionService.createQuestion(userId, bookId, dto);
 
         int answerCount = 0;
-        QuestionResponseDto responseDto = new QuestionResponseDto(savedQuestion, answerCount, profileUrl);
+        QuestionResponseDto responseDto = new QuestionResponseDto(
+                BookResponseDto.from(savedQuestion.getBook()),
+                savedQuestion.getUser().getUserId(),
+                savedQuestion.getQuestionId(),
+                savedQuestion.getUser().getUserNickname(),
+                savedQuestion.getUser().getProfileUrl(),
+                savedQuestion.getQuestionContent(),
+                answerCount,
+                savedQuestion.getLikeCount(),
+                savedQuestion.getScrapCount(),
+                savedQuestion.getCreatedAt()
+        );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "data", responseDto,

@@ -95,9 +95,16 @@ public class BookService {
             int answerCount = 0; // 나중에 실제 answerCount 구하는 로직 넣기
 
             return new QuestionResponseDto(
-                    question,
+                    BookResponseDto.from(question.getBook()),
+                    question.getUser().getUserId(),
+                    question.getQuestionId(),
+                    question.getUser().getUserNickname(),
+                    profileUrl,
+                    question.getQuestionContent(),
                     answerCount,
-                    profileUrl
+                    question.getLikeCount(),
+                    question.getScrapCount(),
+                    question.getCreatedAt()
             );
         });
 

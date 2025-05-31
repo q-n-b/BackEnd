@@ -1,22 +1,34 @@
 package com.example.qnb.question.service;
 //QuestionService 파일
 
+import com.example.qnb.book.entity.Book;
+import com.example.qnb.book.repository.BookRepository;
+import com.example.qnb.common.dto.PageInfo;
 import com.example.qnb.common.exception.*;
+import com.example.qnb.question.dto.QuestionPageResponseDto;
+import com.example.qnb.question.dto.QuestionResponseDto;
 import com.example.qnb.user.entity.User;
 import com.example.qnb.user.repository.UserRepository;
 import com.example.qnb.question.dto.QuestionRequestDto;
 import com.example.qnb.question.entity.Question;
 import com.example.qnb.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
 
+    private final BookRepository bookRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
 
@@ -26,9 +38,13 @@ public class QuestionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
+        // book 조회
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BookNotFoundException());
+
         Question question = new Question();
         question.setUser(user);
-        question.setBookId(bookId);
+        question.setBook(book);
         question.setQuestionContent(dto.getQuestionContent());
         question.setLikeCount(0);
         question.setScrapCount(0);
@@ -53,7 +69,7 @@ public class QuestionService {
         return questionRepository.save(question);
     }
 
-    //질문 삭제 API
+    //질문 삭제 메소드
     @Transactional
     public void deleteQuestion(Integer questionId, Long userId) {
         Question question = questionRepository.findById(questionId)
@@ -65,6 +81,29 @@ public class QuestionService {
 
         questionRepository.delete(question);
     }
+
+    //최신 질문 조회 메소드
+    public QuestionPageResponseDto getRecentQuestions(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Question> questionPage = questionRepository.findAll(pageable);
+
+        if (questionPage.isEmpty()) {
+            throw new QuestionNotFoundException();
+        }
+
+        List<QuestionResponseDto> questions = questionPage.getContent().stream()
+                .map(question -> QuestionResponseDto.from(question, 0))
+                .collect(Collectors.toList());
+
+        PageInfo pageInfo = new PageInfo(
+                questionPage.getNumber() + 1,  // 1-based
+                questionPage.getTotalPages(),
+                questionPage.getTotalElements()
+        );
+
+        return new QuestionPageResponseDto(questions, pageInfo);
+    }
+
 
 
 }

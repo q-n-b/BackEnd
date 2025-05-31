@@ -1,5 +1,6 @@
 package com.example.qnb.question.entity;
 
+import com.example.qnb.book.entity.Book;
 import com.example.qnb.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,13 +12,16 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "question")
 public class Question {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id")
+    private Book book;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto Increment
     private Integer questionId;
 
-    @Column(nullable = false)
-    private Integer bookId; // 도서 ID (Book과의 연관관계 설정 가능)
+    //@Column(nullable = false)
+    //private Integer bookId; // 도서 ID (Book과의 연관관계 설정 가능)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -33,4 +37,9 @@ public class Question {
 
     @CreationTimestamp //작성일시 save()할 때 자동으로 시간 넣어주는 어노테이션
     private LocalDateTime createdAt; // 작성일시
+
+    public Book getBook() {
+        return this.book;
+    }
+
 }

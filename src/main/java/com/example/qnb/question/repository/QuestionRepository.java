@@ -18,7 +18,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     //userNickname이 "GPT"인 질문은 CASE WHEN에서 0 → 가장 우선순위
     @Query("""
     SELECT q FROM Question q
-    WHERE q.bookId = :bookId
+    WHERE q.book.bookId = :bookId
     ORDER BY 
         CASE WHEN q.user.userNickname = 'GPT' THEN 0 ELSE 1 END, 
         q.createdAt DESC
@@ -30,7 +30,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     @Query("""
     SELECT q FROM Question q
-    WHERE q.bookId = :bookId
+    WHERE q.book.bookId = :bookId
     ORDER BY 
         CASE WHEN q.user.userNickname = 'GPT' THEN 0 ELSE 1 END, 
         q.likeCount DESC
@@ -39,7 +39,4 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             @Param("bookId") Integer bookId,
             Pageable pageable
     );
-
-
-
 }

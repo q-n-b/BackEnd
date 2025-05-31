@@ -16,7 +16,7 @@ public class BookResponseDto {
     private String isbn13;         // ISBN
     private String description;    // 설명
 
-    // 생성자 - Book 엔티티로부터 값을 복사
+    // 생성자
     public BookResponseDto(Book book) {
         this.bookId = book.getBookId();
         this.title = book.getTitle();
@@ -27,5 +27,9 @@ public class BookResponseDto {
         this.publisher = book.getPublisher();
         this.isbn13 = book.getIsbn13();
         this.description = book.getDescription();
+    }
+
+    public static BookResponseDto from(Book book) {
+        return new BookResponseDto(book);
     }
 }
