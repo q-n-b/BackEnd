@@ -12,7 +12,8 @@ import org.springframework.stereotype.Repository;
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     // 특정 도서의 질문 전체 조회
-    Page<Question> findByBookId(Integer bookId, Pageable pageable);
+    Page<Question> findByBook_BookId(Integer bookId, Pageable pageable);
+
 
     // 최신순 정렬 + GPT 우선
     //userNickname이 "GPT"인 질문은 CASE WHEN에서 0 → 가장 우선순위
@@ -28,6 +29,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             Pageable pageable
     );
 
+    //좋아요순 정렬+ GPT 우선
     @Query("""
     SELECT q FROM Question q
     WHERE q.book.bookId = :bookId
@@ -39,4 +41,6 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             @Param("bookId") Integer bookId,
             Pageable pageable
     );
+
+
 }

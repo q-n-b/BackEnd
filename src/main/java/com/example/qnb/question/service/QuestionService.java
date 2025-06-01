@@ -84,7 +84,11 @@ public class QuestionService {
 
     //최신 질문 조회 메소드
     public QuestionPageResponseDto getRecentQuestions(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(
+                page-1, //Spring은 0부터 시작하므로 1 빼줌
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt") //최신순 정렬
+        );
         Page<Question> questionPage = questionRepository.findAll(pageable);
 
         if (questionPage.isEmpty()) {
@@ -94,6 +98,7 @@ public class QuestionService {
         List<QuestionResponseDto> questions = questionPage.getContent().stream()
                 .map(question -> QuestionResponseDto.from(question, 0))
                 .collect(Collectors.toList());
+        //이 부분에서 answeCount는 반환되지 않으므로 해당값 0으로 변환시킴
 
         PageInfo pageInfo = new PageInfo(
                 questionPage.getNumber() + 1,  // 1-based
