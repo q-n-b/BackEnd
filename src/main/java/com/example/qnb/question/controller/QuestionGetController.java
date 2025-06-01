@@ -32,19 +32,7 @@ public class QuestionGetController {
             @RequestParam(defaultValue = "5") int size, //page당 질문수 기본값 5
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        /*Page<Question> questionPage = questionService.getRecentQuestions(page, size);
-        List<QuestionResponseDto> questionDtos = questionPage.stream()
-                .map(QuestionResponseDto::from)
-                .toList();
 
-        return ResponseEntity.ok(Map.of(
-                "questions", questionDtos,
-                "pageInfo", Map.of(
-                        "currentPage", questionPage.getNumber() + 1,
-                        "totalPages", questionPage.getTotalPages(),
-                        "totalElements", questionPage.getTotalElements()
-                )
-        ));*/
         QuestionPageResponseDto response = questionService.getRecentQuestions(page, size);
         return ResponseEntity.ok(response);
     }
