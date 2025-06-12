@@ -1,8 +1,8 @@
-package com.example.qnb.user.config;
+package qnb.user.config;
 
-import com.example.qnb.user.JWT.JwtAuthenticationFilter;
-import com.example.qnb.user.JWT.JwtTokenProvider;
-import com.example.qnb.user.service.CustomUserDetailsService;
+import qnb.user.JWT.JwtAuthenticationFilter;
+import qnb.user.JWT.JwtTokenProvider;
+import qnb.user.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -55,7 +55,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // ✅ 프로토콜 포함
+        config.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://<프론트EC2_IP>:3000"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
