@@ -1,4 +1,4 @@
-package com.example.qnb.user.JWT;
+package qnb.user.JWT;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

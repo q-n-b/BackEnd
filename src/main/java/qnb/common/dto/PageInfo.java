@@ -1,4 +1,4 @@
-package com.example.qnb.common.dto;
+package qnb.common.dto;
 
 //UI에서 보여지는 화면 페이지 정보
 

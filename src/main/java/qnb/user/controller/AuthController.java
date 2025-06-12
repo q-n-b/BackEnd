@@ -1,14 +1,15 @@
-package com.example.qnb.user.controller;
+package qnb.user.controller;
 
 import com.example.qnb.common.exception.*;
-import com.example.qnb.user.JWT.JwtTokenProvider;
-import com.example.qnb.user.dto.LoginRequestDto;
-import com.example.qnb.user.dto.SignupRequestDto;
-import com.example.qnb.user.entity.RefreshToken;
-import com.example.qnb.user.entity.User;
-import com.example.qnb.user.repository.RefreshTokenRepository;
-import com.example.qnb.user.repository.UserRepository;
-import com.example.qnb.user.service.UserService;
+import qnb.common.exception.*;
+import qnb.user.JWT.JwtTokenProvider;
+import qnb.user.dto.LoginRequestDto;
+import qnb.user.dto.SignupRequestDto;
+import qnb.user.entity.RefreshToken;
+import qnb.user.entity.User;
+import qnb.user.repository.RefreshTokenRepository;
+import qnb.user.repository.UserRepository;
+import qnb.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

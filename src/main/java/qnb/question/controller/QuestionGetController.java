@@ -1,22 +1,15 @@
-package com.example.qnb.question.controller;
+package qnb.question.controller;
 
-import com.example.qnb.question.dto.QuestionPageResponseDto;
-import com.example.qnb.question.dto.QuestionResponseDto;
-import com.example.qnb.question.entity.Question;
-import com.example.qnb.user.security.UserDetailsImpl;
-import com.example.qnb.question.service.QuestionService;
+import qnb.question.dto.QuestionPageResponseDto;
+import qnb.user.security.UserDetailsImpl;
+import qnb.question.service.QuestionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -25,7 +18,7 @@ public class QuestionGetController {
 
     private final QuestionService questionService;
 
-    //최신 질문 조회
+    //최신 질문 조회 API
     @GetMapping("/recent")
     public ResponseEntity<QuestionPageResponseDto> getRecentQuestions(
             @RequestParam(defaultValue = "1") int page, //page 기본값 1

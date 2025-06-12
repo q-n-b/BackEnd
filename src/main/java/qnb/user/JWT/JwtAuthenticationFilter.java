@@ -1,9 +1,9 @@
-package com.example.qnb.user.JWT;
+package qnb.user.JWT;
 
 //요청이 들어올 때 JWT(토큰)를 검사해서, 그 사용자가 "인증된 사용자"인지 판단하고,
 // 맞다면 Spring Security의 SecurityContext에 인증 정보를 등록해주는 필터
 
-import com.example.qnb.user.security.UserDetailsImpl;
+import qnb.user.security.UserDetailsImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.example.qnb.user.service.CustomUserDetailsService;
+import qnb.user.service.CustomUserDetailsService;
 
 import java.io.IOException;
 

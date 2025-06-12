@@ -1,4 +1,4 @@
-package com.example.qnb.book.entity;
+package qnb.book.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

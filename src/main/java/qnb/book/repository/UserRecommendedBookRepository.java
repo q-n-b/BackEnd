@@ -1,8 +1,8 @@
-package com.example.qnb.book.repository;
+package qnb.book.repository;
 
 //추천 도서 레포지토리
 
-import com.example.qnb.book.entity.UserRecommendedBook;
+import qnb.book.entity.UserRecommendedBook;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

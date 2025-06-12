@@ -1,4 +1,4 @@
-package com.example.qnb.user.dto;
+package qnb.user.dto;
 
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;

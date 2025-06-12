@@ -1,6 +1,6 @@
-package com.example.qnb.book.dto;
+package qnb.book.dto;
 
-import com.example.qnb.book.entity.Book;
+import qnb.book.entity.Book;
 import lombok.Data;
 
 @Data

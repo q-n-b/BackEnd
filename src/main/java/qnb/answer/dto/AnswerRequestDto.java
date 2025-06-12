@@ -1,6 +1,5 @@
-package com.example.qnb.answer.dto;
+package qnb.answer.dto;
 
-import com.example.qnb.answer.entity.Answer;
 import lombok.Getter;
 import lombok.Setter;
 

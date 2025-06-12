@@ -1,14 +1,14 @@
-package com.example.qnb.book.service;
+package qnb.book.service;
 
-import com.example.qnb.book.dto.BookResponseDto;
-import com.example.qnb.book.dto.SingleRecommendedBookResponseDto;
-import com.example.qnb.book.entity.Book;
-import com.example.qnb.book.entity.UserRecommendedBook;
-import com.example.qnb.book.repository.BookRepository;
-import com.example.qnb.book.repository.UserRecommendedBookRepository;
-import com.example.qnb.question.dto.QuestionResponseDto;
-import com.example.qnb.question.entity.Question;
-import com.example.qnb.question.repository.QuestionRepository;
+import qnb.book.dto.BookResponseDto;
+import qnb.book.dto.SingleRecommendedBookResponseDto;
+import qnb.book.entity.Book;
+import qnb.book.entity.UserRecommendedBook;
+import qnb.book.repository.BookRepository;
+import qnb.book.repository.UserRecommendedBookRepository;
+import qnb.question.dto.QuestionResponseDto;
+import qnb.question.entity.Question;
+import qnb.question.repository.QuestionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

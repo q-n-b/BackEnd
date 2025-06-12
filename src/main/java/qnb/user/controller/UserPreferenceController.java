@@ -1,9 +1,9 @@
-package com.example.qnb.user.controller;
+package qnb.user.controller;
 
-import com.example.qnb.common.exception.LoginRequiredException;
-import com.example.qnb.user.dto.UserPreferenceRequestDto;
-import com.example.qnb.user.security.UserDetailsImpl;
-import com.example.qnb.user.service.UserPreferenceService;
+import qnb.common.exception.LoginRequiredException;
+import qnb.user.dto.UserPreferenceRequestDto;
+import qnb.user.security.UserDetailsImpl;
+import qnb.user.service.UserPreferenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

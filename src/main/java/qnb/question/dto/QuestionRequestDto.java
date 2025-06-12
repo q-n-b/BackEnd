@@ -1,4 +1,4 @@
-package com.example.qnb.question.dto;
+package qnb.question.dto;
 //질문 Request Dto
 
 import lombok.Getter;

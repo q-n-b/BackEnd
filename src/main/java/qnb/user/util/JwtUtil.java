@@ -1,4 +1,4 @@
-package com.example.qnb.user.util;
+package qnb.user.util;
 
 public class JwtUtil {
 }

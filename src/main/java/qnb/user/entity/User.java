@@ -1,6 +1,6 @@
-package com.example.qnb.user.entity;
+package qnb.user.entity;
 
-import com.example.qnb.question.entity.Question;
+import qnb.question.entity.Question;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;

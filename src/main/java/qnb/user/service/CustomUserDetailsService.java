@@ -1,8 +1,8 @@
-package com.example.qnb.user.service;
+package qnb.user.service;
 
-import com.example.qnb.user.security.UserDetailsImpl;
-import com.example.qnb.user.entity.User;
-import com.example.qnb.user.repository.UserRepository;
+import qnb.user.security.UserDetailsImpl;
+import qnb.user.entity.User;
+import qnb.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service

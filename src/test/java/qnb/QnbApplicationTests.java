@@ -1,4 +1,4 @@
-package com.example.qnb;
+package qnb;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

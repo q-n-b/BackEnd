@@ -1,9 +1,6 @@
-package com.example.qnb.answer.dto;
+package qnb.answer.dto;
 
-import com.example.qnb.answer.entity.Answer;
-import com.example.qnb.user.entity.User;
-import com.example.qnb.user.repository.UserRepository;
-import com.example.qnb.user.service.UserService;
+import qnb.answer.entity.Answer;
 
 import lombok.Getter;
 import lombok.Setter;

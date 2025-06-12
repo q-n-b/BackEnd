@@ -1,11 +1,11 @@
-package com.example.qnb.answer.controller;
+package qnb.answer.controller;
 
 
-import com.example.qnb.answer.dto.AnswerRequestDto;
-import com.example.qnb.answer.dto.AnswerResponseDto;
-import com.example.qnb.common.exception.LoginRequiredException;
-import com.example.qnb.user.security.UserDetailsImpl;
-import com.example.qnb.answer.service.AnswerService;
+import qnb.answer.dto.AnswerRequestDto;
+import qnb.answer.dto.AnswerResponseDto;
+import qnb.common.exception.LoginRequiredException;
+import qnb.user.security.UserDetailsImpl;
+import qnb.answer.service.AnswerService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

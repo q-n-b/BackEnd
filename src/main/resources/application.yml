@@ -10,6 +10,7 @@ spring:
     password: "Dang1216@@"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+
   jpa:
     hibernate:
       ddl-auto: update  # 개발 중에는 update, 배포 시에는 validate 또는 none 권장
@@ -33,3 +34,9 @@ jwt:
 # 알라딘 오픈 API 키 (외부 도서 데이터 수집용)
 aladin:
   ttbkey: ttbsally1023p1354001
+
+#ML 서버 IP
+ml:
+    server:
+      url: http://<ML 서버 IP>:5000
+

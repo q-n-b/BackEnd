@@ -1,4 +1,4 @@
-package com.example.qnb.user.entity;
+package qnb.user.entity;
 
 public enum Gender {
     M,F;

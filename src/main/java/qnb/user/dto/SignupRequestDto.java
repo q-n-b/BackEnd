@@ -1,9 +1,9 @@
-package com.example.qnb.user.dto;
+package qnb.user.dto;
 
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.validation.constraints.*;
-import com.example.qnb.user.entity.Gender;
+import qnb.user.entity.Gender;
 
 import java.time.LocalDate;
 

@@ -1,7 +1,7 @@
-package com.example.qnb.book.service;
+package qnb.book.service;
 
-import com.example.qnb.book.entity.Book;
-import com.example.qnb.book.repository.BookRepository;
+import qnb.book.entity.Book;
+import qnb.book.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

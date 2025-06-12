@@ -1,15 +1,15 @@
-package com.example.qnb.answer.service;
+package qnb.answer.service;
 
-import com.example.qnb.answer.dto.AnswerRequestDto;
-import com.example.qnb.answer.dto.AnswerResponseDto;
-import com.example.qnb.answer.entity.Answer;
-import com.example.qnb.answer.repository.AnswerRepository;
-import com.example.qnb.common.exception.InvalidCredentialsException;
-import com.example.qnb.common.exception.UnauthorizedAccessException;
-import com.example.qnb.common.exception.AnswerNotFoundException;
-import com.example.qnb.common.exception.UserNotFoundException;
-import com.example.qnb.user.entity.User;
-import com.example.qnb.user.repository.UserRepository;
+import qnb.answer.dto.AnswerRequestDto;
+import qnb.answer.dto.AnswerResponseDto;
+import qnb.answer.entity.Answer;
+import qnb.answer.repository.AnswerRepository;
+import qnb.common.exception.InvalidCredentialsException;
+import qnb.common.exception.UnauthorizedAccessException;
+import qnb.common.exception.AnswerNotFoundException;
+import qnb.common.exception.UserNotFoundException;
+import qnb.user.entity.User;
+import qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

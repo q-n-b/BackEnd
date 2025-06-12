@@ -1,6 +1,6 @@
-package com.example.qnb.question.repository;
+package qnb.question.repository;
 
-import com.example.qnb.question.entity.Question;
+import qnb.question.entity.Question;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

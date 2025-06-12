@@ -1,10 +1,10 @@
-package com.example.qnb.user.service;
+package qnb.user.service;
 
-import com.example.qnb.user.dto.UserPreferenceRequestDto;
-import com.example.qnb.user.entity.User;
-import com.example.qnb.user.entity.UserPreference;
-import com.example.qnb.user.repository.UserPreferenceRepository;
-import com.example.qnb.user.repository.UserRepository;
+import qnb.user.dto.UserPreferenceRequestDto;
+import qnb.user.entity.User;
+import qnb.user.entity.UserPreference;
+import qnb.user.repository.UserPreferenceRepository;
+import qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

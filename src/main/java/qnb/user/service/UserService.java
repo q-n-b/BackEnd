@@ -1,8 +1,8 @@
-package com.example.qnb.user.service;
+package qnb.user.service;
 
-import com.example.qnb.user.dto.SignupRequestDto;
-import com.example.qnb.user.entity.User;
-import com.example.qnb.user.repository.UserRepository;
+import qnb.user.dto.SignupRequestDto;
+import qnb.user.entity.User;
+import qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

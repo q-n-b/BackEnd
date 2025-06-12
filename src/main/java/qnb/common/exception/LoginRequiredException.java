@@ -1,4 +1,4 @@
-package com.example.qnb.common.exception;
+package qnb.common.exception;
 
 public class LoginRequiredException extends RuntimeException {
     public LoginRequiredException() {

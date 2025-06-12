@@ -1,18 +1,15 @@
-package com.example.qnb.answer.controller;
+package qnb.answer.controller;
 
-import com.example.qnb.answer.dto.AnswerRequestDto;
-import com.example.qnb.answer.dto.AnswerResponseDto;
-import com.example.qnb.answer.service.AnswerService;
-import com.example.qnb.common.exception.LoginRequiredException;
-import com.example.qnb.common.exception.MissingFieldException;
-import com.example.qnb.user.security.UserDetailsImpl;
+import qnb.answer.dto.AnswerRequestDto;
+import qnb.answer.dto.AnswerResponseDto;
+import qnb.answer.service.AnswerService;
+import qnb.common.exception.LoginRequiredException;
+import qnb.common.exception.MissingFieldException;
+import qnb.user.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/questions")

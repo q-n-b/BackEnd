@@ -1,9 +1,9 @@
-package com.example.qnb.book.dto;
+package qnb.book.dto;
 
 //개인 추천 도서 1권 조회 dto 파일
 //추천 이유, 키워드 포함
 
-import com.example.qnb.book.entity.Book;
+import qnb.book.entity.Book;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

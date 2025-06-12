@@ -1,7 +1,7 @@
-package com.example.qnb.question.dto;
+package qnb.question.dto;
 
-import com.example.qnb.book.dto.BookResponseDto;
-import com.example.qnb.question.entity.Question;
+import qnb.book.dto.BookResponseDto;
+import qnb.question.entity.Question;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

@@ -1,7 +1,7 @@
-package com.example.qnb.book.controller;
+package qnb.book.controller;
 
-import com.example.qnb.book.service.AladinApiService;
-import com.example.qnb.book.service.BookService;
+import qnb.book.service.AladinApiService;
+import qnb.book.service.BookService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -75,4 +75,5 @@ public class BookController {
                     ResponseEntity.badRequest().body("지원하지 않는 type입니다.");
         };
     }
+
 }

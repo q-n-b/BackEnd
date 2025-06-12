@@ -1,4 +1,4 @@
-package com.example.qnb.common.exception;
+package qnb.common.exception;
 
 public class UnauthorizedAccessException extends RuntimeException {
     public UnauthorizedAccessException() {

@@ -1,4 +1,4 @@
-package qnb.user.config;
+package qnb.common.config;
 
 import qnb.user.JWT.JwtAuthenticationFilter;
 import qnb.user.JWT.JwtTokenProvider;
@@ -36,9 +36,9 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup", "/api/users/login").permitAll() // ✅ 공개 경로
+                        .requestMatchers("/api/users/signup", "/api/users/login").permitAll() // 공개 경로
                         .requestMatchers("/api/books/**").authenticated()
-                        .requestMatchers("/api/users/preferences").authenticated() // ✅ 보호 경로
+                        .requestMatchers("/api/users/preferences").authenticated() // 보호 경로
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

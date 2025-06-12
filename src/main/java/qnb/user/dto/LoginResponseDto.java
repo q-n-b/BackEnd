@@ -1,4 +1,4 @@
-package com.example.qnb.user.dto;
+package qnb.user.dto;
 
 public class LoginResponseDto {
     private String accessToken;

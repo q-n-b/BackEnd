@@ -1,6 +1,6 @@
-package com.example.qnb.question.dto;
+package qnb.question.dto;
 
-import com.example.qnb.common.dto.PageInfo;
+import qnb.common.dto.PageInfo;
 import lombok.Getter;
 
 import java.util.List;

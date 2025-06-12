@@ -1,4 +1,4 @@
-package com.example.qnb.common.handler;
+package qnb.common.handler;
 
 import com.example.qnb.common.exception.*;
 import org.springframework.http.HttpStatus;
@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import qnb.common.exception.*;
 
 import java.util.Map;
 

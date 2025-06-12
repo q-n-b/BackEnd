@@ -1,6 +1,6 @@
-package com.example.qnb.user.repository;
+package qnb.user.repository;
 
-import com.example.qnb.user.entity.User;
+import qnb.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

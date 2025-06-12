@@ -1,14 +1,12 @@
-package com.example.qnb.question.controller;
+package qnb.question.controller;
 
-import com.example.qnb.book.dto.BookResponseDto;
-import com.example.qnb.common.exception.BookNotFoundException;
-import com.example.qnb.common.exception.LoginRequiredException;
-import com.example.qnb.common.exception.QuestionNotFoundException;
-import com.example.qnb.question.dto.QuestionRequestDto;
-import com.example.qnb.question.dto.QuestionResponseDto;
-import com.example.qnb.question.entity.Question;
-import com.example.qnb.question.service.QuestionService;
-import com.example.qnb.user.security.UserDetailsImpl;
+import qnb.book.dto.BookResponseDto;
+import qnb.common.exception.LoginRequiredException;
+import qnb.question.dto.QuestionRequestDto;
+import qnb.question.dto.QuestionResponseDto;
+import qnb.question.entity.Question;
+import qnb.question.service.QuestionService;
+import qnb.user.security.UserDetailsImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

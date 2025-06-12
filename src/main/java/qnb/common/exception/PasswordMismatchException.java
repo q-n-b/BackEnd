@@ -1,4 +1,4 @@
-package com.example.qnb.common.exception;
+package qnb.common.exception;
 
 public class PasswordMismatchException extends RuntimeException {
     public PasswordMismatchException() {

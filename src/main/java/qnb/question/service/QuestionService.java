@@ -1,17 +1,22 @@
-package com.example.qnb.question.service;
+package qnb.question.service;
 //QuestionService 파일
 
-import com.example.qnb.book.entity.Book;
-import com.example.qnb.book.repository.BookRepository;
-import com.example.qnb.common.dto.PageInfo;
-import com.example.qnb.common.exception.*;
-import com.example.qnb.question.dto.QuestionPageResponseDto;
-import com.example.qnb.question.dto.QuestionResponseDto;
-import com.example.qnb.user.entity.User;
-import com.example.qnb.user.repository.UserRepository;
-import com.example.qnb.question.dto.QuestionRequestDto;
-import com.example.qnb.question.entity.Question;
-import com.example.qnb.question.repository.QuestionRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
+import qnb.book.entity.Book;
+import qnb.book.repository.BookRepository;
+import qnb.common.dto.PageInfo;
+import qnb.common.exception.*;
+import qnb.common.exception.BookNotFoundException;
+import qnb.common.exception.QuestionNotFoundException;
+import qnb.common.exception.UnauthorizedAccessException;
+import qnb.question.dto.QuestionPageResponseDto;
+import qnb.question.dto.QuestionResponseDto;
+import qnb.user.entity.User;
+import qnb.user.repository.UserRepository;
+import qnb.question.dto.QuestionRequestDto;
+import qnb.question.entity.Question;
+import qnb.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +36,8 @@ public class QuestionService {
     private final BookRepository bookRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
+
+    private final RestTemplate restTemplate;
 
     //질문 등록 메소드
     public Question createQuestion(Long userId, Integer bookId, QuestionRequestDto dto) {
@@ -108,6 +115,40 @@ public class QuestionService {
 
         return new QuestionPageResponseDto(questions, pageInfo);
     }
+
+    @Value("${ml.server.url}")
+    private String mlServerUrl;
+
+    //질문 생성 메소드
+   /* public void generateQuestion(Integer bookId) {
+        // 1. 책 정보 조회
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
+
+        // 2. ML 서버로 요청 보낼 DTO 구성
+        Map<String, String> requestBody = Map.of(
+                "title", book.getTitle(),
+                "description", book.getDescription()
+        );
+
+        // 3. ML 서버로 POST 요청
+        ResponseEntity<QuestionResponse> response = restTemplate.postForEntity(
+                mlServerUrl + "/generate-question",
+                requestBody,
+                QuestionResponse.class
+        );
+
+        // 4. 응답 값 저장
+        QuestionResponse questionRes = response.getBody();
+
+        Question question = Question.builder()
+                .book(book)
+                .content(questionRes.getContent())
+                .user(null) // GPT 질문이면 null 또는 별도 'GPT' user
+                .build();
+
+        questionRepository.save(question);
+    }*/
 
 
 

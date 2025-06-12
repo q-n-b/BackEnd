@@ -1,6 +1,6 @@
-package com.example.qnb.user.security;
+package qnb.user.security;
 
-import com.example.qnb.user.entity.User;
+import qnb.user.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

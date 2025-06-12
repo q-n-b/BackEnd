@@ -1,4 +1,4 @@
-package com.example.qnb.user.entity;
+package qnb.user.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

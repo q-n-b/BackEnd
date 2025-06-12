@@ -1,7 +1,7 @@
-package com.example.qnb.question.entity;
+package qnb.question.entity;
 
-import com.example.qnb.book.entity.Book;
-import com.example.qnb.user.entity.User;
+import qnb.book.entity.Book;
+import qnb.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
