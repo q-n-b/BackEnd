@@ -1,5 +1,6 @@
 package qnb.common.config;
 
+import org.springframework.http.HttpMethod;
 import qnb.user.JWT.JwtAuthenticationFilter;
 import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.service.CustomUserDetailsService;
@@ -30,12 +31,14 @@ public class SecurityConfig {
         this.customUserDetailsService = customUserDetailsService;
     }
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/users/signup", "/api/users/login").permitAll() // 공개 경로
                         .requestMatchers("/api/books/**").authenticated()
                         .requestMatchers("/api/users/preferences").authenticated() // 보호 경로
