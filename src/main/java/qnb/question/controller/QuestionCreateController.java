@@ -1,3 +1,4 @@
+/*
 package qnb.question.controller;
 
 import lombok.RequiredArgsConstructor;
@@ -26,3 +27,4 @@ public class QuestionCreateController {
         ));
     }
 }
+*/
