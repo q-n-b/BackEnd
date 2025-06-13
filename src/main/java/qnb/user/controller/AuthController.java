@@ -1,6 +1,6 @@
 package qnb.user.controller;
 
-import com.example.qnb.common.exception.*;
+import qnb.common.exception.*;
 import qnb.common.exception.*;
 import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.dto.LoginRequestDto;
