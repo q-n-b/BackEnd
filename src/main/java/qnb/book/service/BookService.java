@@ -1,18 +1,22 @@
 package qnb.book.service;
 
 import qnb.book.dto.BookResponseDto;
+import qnb.book.dto.BookSimpleDto;
 import qnb.book.dto.SingleRecommendedBookResponseDto;
 import qnb.book.entity.Book;
 import qnb.book.entity.UserRecommendedBook;
 import qnb.book.repository.BookRepository;
 import qnb.book.repository.UserRecommendedBookRepository;
+import qnb.common.dto.PageInfoDto;
+import qnb.question.dto.QuestionListResponseDto;
 import qnb.question.dto.QuestionResponseDto;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
+import qnb.common.exception.BookNotFoundException;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -76,12 +80,14 @@ public class BookService {
     // 4. 도서 상세 조회
     public BookResponseDto getBookDetail(Integer bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("도서를 찾을 수 없습니다."));
+                .orElseThrow(BookNotFoundException::new);
         return new BookResponseDto(book);
     }
 
     // 5. 특정 도서의 질문 리스트 조회
-    public Page<QuestionResponseDto> getBookQuestions(Integer bookId, String sort, Pageable pageable) {
+    public QuestionListResponseDto getBookQuestions(Integer bookId, String sort, Pageable pageable) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(BookNotFoundException::new);
         Page<Question> questions;
 
         if ("popular".equals(sort)) {
@@ -90,8 +96,8 @@ public class BookService {
             questions = questionRepository.findWithGptTopByBookIdOrderByCreatedAtDesc(bookId, pageable);
         }
 
-        return questions.map(question -> {
-            String profileUrl = question.getUser().getProfileUrl(); // ← 여기서 꺼내옴
+        Page<QuestionResponseDto> questionPage = questions.map(question -> {
+            String profileUrl = question.getUser().getProfileUrl();
             int answerCount = 0; // 나중에 실제 answerCount 구하는 로직 넣기
 
             return new QuestionResponseDto(
@@ -108,7 +114,19 @@ public class BookService {
             );
         });
 
+        BookSimpleDto bookDto = new BookSimpleDto(book.getBookId(), book.getTitle());
+
+        PageInfoDto pageInfo = new PageInfoDto(
+                questions.getNumber() + 1,
+                questions.getTotalPages(),
+                questions.getTotalElements()
+        );
+
+        // 최종 DTO 조립 및 반환
+        return new QuestionListResponseDto(
+                bookDto,
+                questionPage.getContent(),
+                pageInfo
+        );
     }
-
-
 }

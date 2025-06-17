@@ -1,6 +1,6 @@
 package qnb.question.dto;
 
-import qnb.common.dto.PageInfo;
+import qnb.common.dto.PageInfoDto;
 import lombok.Getter;
 
 import java.util.List;
@@ -8,10 +8,10 @@ import java.util.List;
 @Getter
 public class QuestionPageResponseDto {
     private List<QuestionResponseDto> questions;
-    private PageInfo pageInfo;
+    private PageInfoDto pageInfoDto;
 
-    public QuestionPageResponseDto(List<QuestionResponseDto> questions, PageInfo pageInfo) {
+    public QuestionPageResponseDto(List<QuestionResponseDto> questions, PageInfoDto pageInfoDto) {
         this.questions = questions;
-        this.pageInfo = pageInfo;
+        this.pageInfoDto = pageInfoDto;
     }
 }

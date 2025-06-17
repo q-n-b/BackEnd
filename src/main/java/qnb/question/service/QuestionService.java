@@ -5,8 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
-import qnb.common.dto.PageInfo;
-import qnb.common.exception.*;
+import qnb.common.dto.PageInfoDto;
 import qnb.common.exception.BookNotFoundException;
 import qnb.common.exception.QuestionNotFoundException;
 import qnb.common.exception.UnauthorizedAccessException;
@@ -107,13 +106,13 @@ public class QuestionService {
                 .collect(Collectors.toList());
         //이 부분에서 answeCount는 반환되지 않으므로 해당값 0으로 변환시킴
 
-        PageInfo pageInfo = new PageInfo(
+        PageInfoDto pageInfoDto = new PageInfoDto(
                 questionPage.getNumber() + 1,  // 1-based
                 questionPage.getTotalPages(),
                 questionPage.getTotalElements()
         );
 
-        return new QuestionPageResponseDto(questions, pageInfo);
+        return new QuestionPageResponseDto(questions, pageInfoDto);
     }
 
     @Value("${ml.server.url}")

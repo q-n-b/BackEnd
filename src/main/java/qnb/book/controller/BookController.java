@@ -59,21 +59,24 @@ public class BookController {
                 yield ResponseEntity.ok(bookService.getRecommendedBooks());
             }
 
+            // 장르별 추천 도서
             case "category-recommendations" ->
-                    ResponseEntity.ok(bookService.getRecommendedBooksByGenre(category)); // 장르별 추천 도서
+                    ResponseEntity.ok(bookService.getRecommendedBooksByGenre(category));
 
+            // 신간 도서
             case "new" ->
-                    ResponseEntity.ok(bookService.getNewBooks(PageRequest.of(page, size))); // 신간 도서
+                    ResponseEntity.ok(bookService.getNewBooks(PageRequest.of(page, size)));
 
+            // 도서 상세 조회
             case "detail" ->
-                    ResponseEntity.ok(bookService.getBookDetail(bookId)); // 도서 상세 조회
+                    ResponseEntity.ok(bookService.getBookDetail(bookId));
 
+            // 도서 관련 질문 목록
             case "questions" ->
-                    ResponseEntity.ok(bookService.getBookQuestions(bookId, sort, PageRequest.of(page, size))); // 도서 관련 질문 목록
+                    ResponseEntity.ok(bookService.getBookQuestions(bookId, sort, PageRequest.of(page, size)));
 
             default ->
                     ResponseEntity.badRequest().body("지원하지 않는 type입니다.");
         };
     }
-
 }
