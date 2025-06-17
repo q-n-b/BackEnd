@@ -38,11 +38,15 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        //공개 경로
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/users/signup", "/api/users/login").permitAll()
-                        .requestMatchers("/api/questions/recent").permitAll() // 공개 경로
-                        .requestMatchers("/api/books/**").authenticated()
-                        .requestMatchers("/api/users/preferences").authenticated() // 보호 경로
+                        .requestMatchers("/api/questions/recent").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        //보호 경로
+                        .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
+                        .requestMatchers("/api/users/preferences").authenticated()
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
