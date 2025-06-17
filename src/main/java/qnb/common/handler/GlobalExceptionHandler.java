@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,7 +66,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 Map.of(
                         "errorCode", "ANSWER_NOT_FOUND",
-                        "message", ex.getMessage()
+                        "errorMessage", ex.getMessage()
                 )
         );
     }
@@ -75,7 +76,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleNotFound(QuestionNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                 "errorCode", "QUESTION_NOT_FOUND",
-                "message", ex.getMessage()
+                "errorMessage", ex.getMessage()
         ));
     }
 
@@ -84,7 +85,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleBookNotFound(BookNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                 "errorCode", "BOOK_NOT_FOUND",
-                "message", ex.getMessage()
+                "errorMessage", ex.getMessage()
         ));
     }
 
@@ -93,7 +94,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleUserNotFound(UserNotFoundException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("errorCode", "USER_NOT_FOUND");
-        response.put("message", ex.getMessage());
+        response.put("errorMessage", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
@@ -103,7 +104,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleUnauthorized(UnauthorizedAccessException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                 "errorCode", "UNAUTHORIZED",
-                "message", ex.getMessage()
+                "errorMessage", ex.getMessage()
         ));
     }
 
@@ -114,7 +115,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(Map.of(
                 "errorCode", "MISSING_QUESTION_CONTENT",
-                "message", errorMessage
+                "errorMessage", errorMessage
         ));
     }
 
@@ -123,7 +124,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleLoginRequired(LoginRequiredException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                 "errorCode", "UNAUTHORIZED",
-                "message", ex.getMessage()
+                "errorMessage", ex.getMessage()
         ));
     }
 
@@ -133,7 +134,7 @@ public class GlobalExceptionHandler {
         ex.printStackTrace(); // 디버깅용
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "errorCode", "INTERNAL_ERROR",
-                "message", "서버 에러가 발생했습니다."
+                "errorMessage", "서버 에러가 발생했습니다."
         ));
     }
 
@@ -146,6 +147,15 @@ public class GlobalExceptionHandler {
         ));
     }
 
-
-
+    //내가 남긴 Q&A 없을 때
+    @ExceptionHandler(QnaNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleQnaNotFound(QnaNotFoundException ex) {
+        return ResponseEntity.status(404).body(
+                Map.of(
+                        "errorCode", "QNA_NOT_FOUND",
+                        "errormessage", "남긴 Q&A가 없습니다",
+                        "timestamp", ZonedDateTime.now()
+                )
+        );
+    }
 }

@@ -8,12 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
-    // 특정 도서의 질문 전체 조회
-    Page<Question> findByBook_BookId(Integer bookId, Pageable pageable);
-
+    List<Question> findByUser_UserId(Long userId);
 
     // 최신순 정렬 + GPT 우선
     //userNickname이 "GPT"인 질문은 CASE WHEN에서 0 → 가장 우선순위
