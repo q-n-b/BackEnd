@@ -36,6 +36,4 @@ public class Answer {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
-
-
 }

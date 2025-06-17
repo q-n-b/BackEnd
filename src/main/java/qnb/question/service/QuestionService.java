@@ -1,14 +1,16 @@
 package qnb.question.service;
 //QuestionService 파일
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
+import qnb.answer.dto.AnswersByUserDto;
+import qnb.answer.entity.Answer;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
 import qnb.common.dto.PageInfoDto;
 import qnb.common.exception.BookNotFoundException;
 import qnb.common.exception.QuestionNotFoundException;
 import qnb.common.exception.UnauthorizedAccessException;
+import qnb.question.dto.QuestionDetailResponseDto;
 import qnb.question.dto.QuestionPageResponseDto;
 import qnb.question.dto.QuestionResponseDto;
 import qnb.user.entity.User;
@@ -23,9 +25,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import qnb.answer.repository.AnswerRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -115,9 +121,40 @@ public class QuestionService {
         return new QuestionPageResponseDto(questions, pageInfoDto);
     }
 
-    @Value("${ml.server.url}")
-    private String mlServerUrl;
+    //질문 상세 조회 메소드
+    public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort) {
+        Question question = questionRepository.findById(Math.toIntExact(questionId))
+                .orElseThrow(QuestionNotFoundException::new);
 
+        // 답변 정렬 기준 처리
+        List<Answer> answers = AnswerRepository.findByQuestionId(questionId);
+        Comparator<Answer> comparator = sort.equals("popular")
+                ? Comparator.comparing(Answer::getLikeCount).reversed()
+                : Comparator.comparing(Answer::getCreatedAt).reversed();
+
+// 질문 정보 DTO로 변환 (답변 수 포함)
+        QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
+        // 사용자 기준으로 묶기
+        Map<Long, List<Answer>> grouped = answers.stream()
+                .sorted(comparator)
+                .collect(Collectors.groupingBy(a -> a.getUser().getId()));
+
+        List<AnswersByUserDto> answersByUser = new ArrayList<>();
+        for (Map.Entry<Long, List<Answer>> entry : grouped.entrySet()) {
+            User user = entry.getValue().get(0).getUser();
+            List<AnswerDto> answerDtos = entry.getValue().stream()
+                    .map(AnswerDto::from)
+                    .collect(Collectors.toList());
+
+            answersByUser.add(new AnswersByUserDto(user, answerDtos));
+        }
+
+        return new QuestionDetailResponseDto(questionDto, answersByUser);
+    }
+
+    /*@Value("${ml.server.url}")
+    private String mlServerUrl;
+*/
     //질문 생성 메소드
    /* public void generateQuestion(Integer bookId) {
         // 1. 책 정보 조회
