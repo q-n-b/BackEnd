@@ -36,4 +36,13 @@ public class AnswerResponseDto {
 
     }
 
+    public static AnswerResponseDto from(Answer answer, String userId, String nickname, String profileUrl) {
+        return new AnswerResponseDto(
+                answer.getQuestionId(),
+                answer,
+                userId,
+                nickname,
+                profileUrl
+        );
+    }
 }

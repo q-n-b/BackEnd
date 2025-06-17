@@ -2,6 +2,7 @@ package qnb.question.service;
 //QuestionService 파일
 
 import org.springframework.web.client.RestTemplate;
+import qnb.answer.dto.AnswerResponseDto;
 import qnb.answer.dto.AnswersByUserDto;
 import qnb.answer.entity.Answer;
 import qnb.book.entity.Book;
@@ -9,6 +10,7 @@ import qnb.book.repository.BookRepository;
 import qnb.common.dto.PageInfoDto;
 import qnb.common.exception.BookNotFoundException;
 import qnb.common.exception.QuestionNotFoundException;
+import qnb.common.exception.UserNotFoundException;
 import qnb.common.exception.UnauthorizedAccessException;
 import qnb.question.dto.QuestionDetailResponseDto;
 import qnb.question.dto.QuestionPageResponseDto;
@@ -18,6 +20,8 @@ import qnb.user.repository.UserRepository;
 import qnb.question.dto.QuestionRequestDto;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
+import qnb.answer.repository.AnswerRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import qnb.answer.repository.AnswerRepository;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +45,8 @@ public class QuestionService {
     private final BookRepository bookRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
+    private final AnswerRepository answerRepository;
+
 
     private final RestTemplate restTemplate;
 
@@ -127,23 +133,34 @@ public class QuestionService {
                 .orElseThrow(QuestionNotFoundException::new);
 
         // 답변 정렬 기준 처리
-        List<Answer> answers = AnswerRepository.findByQuestionId(questionId);
+        List<Answer> answers = answerRepository.findByQuestionId(questionId);
         Comparator<Answer> comparator = sort.equals("popular")
                 ? Comparator.comparing(Answer::getLikeCount).reversed()
                 : Comparator.comparing(Answer::getCreatedAt).reversed();
 
-// 질문 정보 DTO로 변환 (답변 수 포함)
+        // 질문 정보 DTO로 변환 (답변 수 포함)
         QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
+
         // 사용자 기준으로 묶기
         Map<Long, List<Answer>> grouped = answers.stream()
                 .sorted(comparator)
-                .collect(Collectors.groupingBy(a -> a.getUser().getId()));
+                .collect(Collectors.groupingBy(Answer::getUserId));
 
         List<AnswersByUserDto> answersByUser = new ArrayList<>();
         for (Map.Entry<Long, List<Answer>> entry : grouped.entrySet()) {
-            User user = entry.getValue().get(0).getUser();
-            List<AnswerDto> answerDtos = entry.getValue().stream()
-                    .map(AnswerDto::from)
+            Long userId = entry.getKey();
+
+            // userId로 사용자 정보 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(UserNotFoundException::new);
+
+            // 답변 리스트 DTO로 변환
+            List<AnswerResponseDto> answerDtos = entry.getValue().stream()
+                    .map(answer -> AnswerResponseDto.from(
+                            answer,
+                            user.getUserId().toString(),
+                            user.getUserNickname(),
+                            user.getProfileUrl()))
                     .collect(Collectors.toList());
 
             answersByUser.add(new AnswersByUserDto(user, answerDtos));
