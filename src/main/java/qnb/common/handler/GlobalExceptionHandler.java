@@ -7,8 +7,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import qnb.common.exception.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -70,7 +70,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-
     //질문 찾을 수 없을 때
     @ExceptionHandler(QuestionNotFoundException.class)
     public ResponseEntity<?> handleNotFound(QuestionNotFoundException ex) {
@@ -87,6 +86,16 @@ public class GlobalExceptionHandler {
                 "errorCode", "BOOK_NOT_FOUND",
                 "message", ex.getMessage()
         ));
+    }
+
+    //사용자를 찾을 수 없을 때
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotFound(UserNotFoundException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("errorCode", "USER_NOT_FOUND");
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     //권한이 없을 경우

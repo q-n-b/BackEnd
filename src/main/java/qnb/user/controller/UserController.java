@@ -1,14 +1,16 @@
 package qnb.user.controller;
 
-import qnb.common.exception.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import qnb.common.exception.*;
 import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.dto.LoginRequestDto;
 import qnb.user.dto.SignupRequestDto;
+import qnb.user.dto.UserInfoResponseDto;
 import qnb.user.entity.RefreshToken;
 import qnb.user.entity.User;
 import qnb.user.repository.RefreshTokenRepository;
 import qnb.user.repository.UserRepository;
+import qnb.user.security.UserDetailsImpl;
 import qnb.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +28,8 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://16.176.8.47:3000")
 @RequiredArgsConstructor
-public class AuthController {
+public class UserController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -134,5 +135,16 @@ public class AuthController {
                 "accessToken", accessToken,
                 "refreshToken", refreshToken
         ));
+    }
+
+    //내 정보 조회 반환 API
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoResponseDto> getMyInfo(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        if (userDetails == null || userDetails.getUser() == null) {
+            throw new UserNotFoundException();
+        }
+
+        UserInfoResponseDto response = userService.getMyInfo(userDetails.getUser());
+        return ResponseEntity.ok(response);
     }
 }

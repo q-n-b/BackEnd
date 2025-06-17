@@ -36,16 +36,17 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf().disable()
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/users/signup", "/api/users/login").permitAll() // 공개 경로
+                        .requestMatchers("/api/users/signup", "/api/users/login").permitAll()
+                        .requestMatchers("/api/questions/recent").permitAll() // 공개 경로
                         .requestMatchers("/api/books/**").authenticated()
                         .requestMatchers("/api/users/preferences").authenticated() // 보호 경로
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .httpBasic().disable();
+                .httpBasic(httpBasic -> httpBasic.disable());
 
         return http.build();
     }
@@ -60,7 +61,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://16.176.8.47:3000"
+                "http://16.176.9.236:3000"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

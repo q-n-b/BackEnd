@@ -22,10 +22,8 @@ public class QuestionGetController {
     @GetMapping("/recent")
     public ResponseEntity<QuestionPageResponseDto> getRecentQuestions(
             @RequestParam(defaultValue = "1") int page, //page 기본값 1
-            @RequestParam(defaultValue = "5") int size, //page당 질문수 기본값 5
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-
+            @RequestParam(defaultValue = "5") int size)//page당 질문수 기본값 5
+    {
         QuestionPageResponseDto response = questionService.getRecentQuestions(page, size);
         return ResponseEntity.ok(response);
     }
