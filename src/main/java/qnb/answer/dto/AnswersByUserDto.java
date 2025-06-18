@@ -18,7 +18,7 @@ public class AnswersByUserDto {
     private String profileUrl;
     private List<AnswerResponseDto> answers;
 
-    public AnswersByUserDto(User user, List<AnswerResponseDto> answers) {
+    public AnswersByUserDto(User user,List<AnswerResponseDto> answers) {
         this.userId = user.getUserId();
         this.userNickname = user.getUserNickname();
         this.profileUrl = user.getProfileUrl();
