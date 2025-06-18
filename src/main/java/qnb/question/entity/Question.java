@@ -39,4 +39,8 @@ public class Question {
     @CreationTimestamp //작성일시 save()할 때 자동으로 시간 넣어주는 어노테이션
     private LocalDateTime createdAt; // 작성일시
 
+    @Column(name = "answer_count", nullable = false)
+    private int answerCount = 0;
+
+
 }

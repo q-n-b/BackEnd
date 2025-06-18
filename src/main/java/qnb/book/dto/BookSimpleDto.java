@@ -11,4 +11,5 @@ import lombok.Getter;
 public class BookSimpleDto {
     private Integer bookId;
     private String bookTitle;
+    private String imageUrl;
 }

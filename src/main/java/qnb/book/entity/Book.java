@@ -34,4 +34,11 @@ public class Book {
 
     @Column(columnDefinition = "TEXT")
     private String description; //책 설명
+
+    @Column(name = "question_count")
+    private int questionCount;
+
+    @Column(name = "scrap_count", nullable = false)
+    private int scrapCount = 0;
+
 }

@@ -2,18 +2,15 @@ package qnb.common.dto;
 
 //UI에서 보여지는 화면 페이지 정보
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PageInfoDto {
-
-    private int currentPage; //현재 응답된 페이지 번호
-    private int totalPages; //전체 페이지수
-    private long totalElements; //전체 질문 개수
-
-    public PageInfoDto(int currentPage, int totalPages, long totalElements) {
-        this.currentPage = currentPage;
-        this.totalPages = totalPages;
-        this.totalElements = totalElements;
-    }
+    private int currentPage;
+    private int totalPages;
+    private long totalElements;
 }

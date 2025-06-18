@@ -8,6 +8,8 @@ import qnb.common.exception.InvalidCredentialsException;
 import qnb.common.exception.UnauthorizedAccessException;
 import qnb.common.exception.AnswerNotFoundException;
 import qnb.common.exception.UserNotFoundException;
+import qnb.question.entity.Question;
+import qnb.question.repository.QuestionRepository;
 import qnb.user.entity.User;
 import qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,8 @@ public class AnswerService {
 
     private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
+    private final QuestionRepository questionRepository;
+
 
     //답변 등록
     public AnswerResponseDto registerAnswer(Long questionId, Long userId, String userNickname, String profileUrl, AnswerRequestDto dto) {
@@ -31,6 +35,9 @@ public class AnswerService {
                 .build();
 
         Answer saved = answerRepository.save(answer);
+
+        Question question = questionRepository.findById(questionId.intValue())
+                .orElseThrow();
 
         return new AnswerResponseDto(questionId, saved, userId.toString(), userNickname, profileUrl);
     }
@@ -80,6 +87,9 @@ public class AnswerService {
         }
 
         answerRepository.delete(answer);
+
+        Question question = questionRepository.findById(answer.getQuestionId().intValue())
+                .orElseThrow();
     }
 
 }

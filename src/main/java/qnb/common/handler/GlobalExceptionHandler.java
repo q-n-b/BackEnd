@@ -1,5 +1,6 @@
 package qnb.common.handler;
 
+import org.springframework.web.ErrorResponse;
 import qnb.common.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -158,4 +159,29 @@ public class GlobalExceptionHandler {
                 )
         );
     }
+
+    // 검색 결과 없을 때
+    @ExceptionHandler(SearchNoResultException.class)
+    public ResponseEntity<Map<String, Object>> handleSearchNoResult(SearchNoResultException ex) {
+        return ResponseEntity.status(404).body(
+                Map.of(
+                        "errorCode", "SEARCH_NO_RESULT",
+                        "errormessage", ex.getMessage(),
+                        "timestamp", java.time.ZonedDateTime.now()
+                )
+        );
+    }
+
+    //검색모드 잘못 선택했을 때
+    @ExceptionHandler(InvalidSearchModeException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidSearchMode(InvalidSearchModeException ex) {
+        return ResponseEntity.status(400).body(
+                Map.of(
+                        "errorCode", "INVALID_MODE",
+                        "errormessage", ex.getMessage(),
+                        "timestamp", java.time.ZonedDateTime.now()
+                )
+        );
+    }
+
 }

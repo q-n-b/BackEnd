@@ -15,6 +15,7 @@ public class BookResponseDto {
     private String publisher;      // 출판사
     private String isbn13;         // ISBN
     private String description;    // 설명
+    private String scrapCount;
 
     // 생성자
     public BookResponseDto(Book book) {

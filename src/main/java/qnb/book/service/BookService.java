@@ -127,7 +127,7 @@ public class BookService {
             );
         });
 
-        BookSimpleDto bookDto = new BookSimpleDto(book.getBookId(), book.getTitle());
+        BookSimpleDto bookDto = new BookSimpleDto(book.getBookId(), book.getTitle(),book.getImageUrl());
 
         PageInfoDto pageInfo = new PageInfoDto(
                 questions.getNumber() + 1,
