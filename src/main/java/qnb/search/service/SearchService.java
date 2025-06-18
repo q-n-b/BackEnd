@@ -33,11 +33,12 @@ public class SearchService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
 
+    //요약 버전 생성하는 메소드
     public BookSummaryDto createBookSummary(String keyword) {
         List<Book> books = bookRepository.findBooksForSummary(keyword);
 
         List<BookPreviewDto> previewList = books.stream()
-                .limit(3)
+                .limit(5)
                 .map(book -> new BookPreviewDto(
                         book.getBookId().longValue(),
                         book.getTitle(),
@@ -53,7 +54,7 @@ public class SearchService {
         List<Question> questions = questionRepository.findQuestionsForSummary(keyword);
 
         List<QuestionPreviewDto> previewList = questions.stream()
-                .limit(3) // preview는 최대 3개로 제한
+                .limit(5)
                 .map(q -> new QuestionPreviewDto(
                         q.getQuestionId().longValue(),
                         q.getBook().getBookId().longValue(),
@@ -70,7 +71,7 @@ public class SearchService {
         List<Answer> answers = answerRepository.findAnswersForSummary(keyword);
 
         List<AnswerPreviewDto> previewList = answers.stream()
-                .limit(3)
+                .limit(5)
                 .map(a -> new AnswerPreviewDto(
                         a.getAnswerId(),
                         a.getQuestion().getQuestionId().longValue(),

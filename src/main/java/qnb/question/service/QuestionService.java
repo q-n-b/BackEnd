@@ -60,6 +60,9 @@ public class QuestionService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException());
 
+        book.setQuestionCount(book.getQuestionCount() + 1);
+        bookRepository.save(book);
+
         Question question = new Question();
         question.setUser(user);
         question.setBook(book);
@@ -96,6 +99,14 @@ public class QuestionService {
         if (!question.getUser().getUserId().equals(userId)) {
             throw new UnauthorizedAccessException(); // 403
         }
+
+        Book book = bookRepository.findById(question.getBook().getBookId())
+                .orElseThrow(BookNotFoundException::new);
+
+        int currentCount = book.getQuestionCount();
+        book.setQuestionCount(Math.max(0, currentCount - 1)); // 음수 방지
+        bookRepository.save(book);
+
 
         questionRepository.delete(question);
     }

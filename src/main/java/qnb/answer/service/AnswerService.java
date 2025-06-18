@@ -8,6 +8,7 @@ import qnb.common.exception.InvalidCredentialsException;
 import qnb.common.exception.UnauthorizedAccessException;
 import qnb.common.exception.AnswerNotFoundException;
 import qnb.common.exception.UserNotFoundException;
+import qnb.common.exception.QuestionNotFoundException;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
 import qnb.user.entity.User;
@@ -38,6 +39,9 @@ public class AnswerService {
 
         Question question = questionRepository.findById(questionId.intValue())
                 .orElseThrow();
+
+        question.setAnswerCount(question.getAnswerCount() + 1);
+        questionRepository.save(question);
 
         return new AnswerResponseDto(questionId, saved, userId.toString(), userNickname, profileUrl);
     }
@@ -86,10 +90,15 @@ public class AnswerService {
             throw new UnauthorizedAccessException(); // 403
         }
 
-        answerRepository.delete(answer);
-
         Question question = questionRepository.findById(answer.getQuestionId().intValue())
-                .orElseThrow();
+                .orElseThrow(QuestionNotFoundException::new);
+
+        int currentCount = question.getAnswerCount();
+        question.setAnswerCount(Math.max(0, currentCount - 1)); // 0 이하로 안 내려가게
+        questionRepository.save(question);
+
+        answerRepository.delete(answer);
+        
     }
 
 }
