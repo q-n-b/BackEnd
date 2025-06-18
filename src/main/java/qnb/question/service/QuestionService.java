@@ -169,6 +169,7 @@ public class QuestionService {
         return new QuestionDetailResponseDto(questionDto, answersByUser);
     }
 
+
     /*@Value("${ml.server.url}")
     private String mlServerUrl;
 */

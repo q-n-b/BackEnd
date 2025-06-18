@@ -1,5 +1,8 @@
 package qnb.book.service;
 
+import lombok.RequiredArgsConstructor;
+import qnb.answer.entity.Answer;
+import qnb.answer.repository.AnswerRepository;
 import qnb.book.dto.BookResponseDto;
 import qnb.book.dto.BookSimpleDto;
 import qnb.book.dto.SingleRecommendedBookResponseDto;
@@ -18,21 +21,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BookService {
 
     private final BookRepository bookRepository;
     private final UserRecommendedBookRepository recommendedBookRepository;
     private final QuestionRepository questionRepository;
-
-    public BookService(BookRepository bookRepository,
-                       UserRecommendedBookRepository recommendedBookRepository,
-                       QuestionRepository questionRepository) {
-        this.bookRepository = bookRepository;
-        this.recommendedBookRepository = recommendedBookRepository;
-        this.questionRepository = questionRepository;
-    }
+    private final AnswerRepository answerRepository;
 
     //도서 존재 여부 로직
     public boolean existsById(Integer bookId) {
@@ -88,17 +87,31 @@ public class BookService {
     public QuestionListResponseDto getBookQuestions(Integer bookId, String sort, Pageable pageable) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
-        Page<Question> questions;
 
+        Page<Question> questions;
         if ("popular".equals(sort)) {
             questions = questionRepository.findWithGptTopByBookIdOrderByLikeCountDesc(bookId, pageable);
         } else {
             questions = questionRepository.findWithGptTopByBookIdOrderByCreatedAtDesc(bookId, pageable);
         }
 
+        // 질문 ID 리스트 추출
+        List<Integer> questionIds = questions.getContent().stream()
+                .map(Question::getQuestionId)
+                .collect(Collectors.toList());
+
+        // 질문별 답변 수 조회 (List<Object[]> → Map<Integer, Integer>)
+        List<Object[]> rawAnswerCounts = answerRepository.countAnswersByQuestionIds(questionIds);
+        Map<Integer, Integer> answerCountMap = rawAnswerCounts.stream()
+                .collect(Collectors.toMap(
+                        row -> (Integer) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
+        // DTO 변환 (답변 수 포함)
         Page<QuestionResponseDto> questionPage = questions.map(question -> {
             String profileUrl = question.getUser().getProfileUrl();
-            int answerCount = 0; // 나중에 실제 answerCount 구하는 로직 넣기
+            int answerCount = answerCountMap.getOrDefault(question.getQuestionId(), 0);
 
             return new QuestionResponseDto(
                     BookResponseDto.from(question.getBook()),
@@ -122,7 +135,6 @@ public class BookService {
                 questions.getTotalElements()
         );
 
-        // 최종 DTO 조립 및 반환
         return new QuestionListResponseDto(
                 bookDto,
                 questionPage.getContent(),
