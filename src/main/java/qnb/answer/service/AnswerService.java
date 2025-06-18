@@ -98,7 +98,7 @@ public class AnswerService {
         questionRepository.save(question);
 
         answerRepository.delete(answer);
-        
+
     }
 
 }
