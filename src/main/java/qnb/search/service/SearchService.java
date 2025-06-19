@@ -95,7 +95,10 @@ public class SearchService {
 
     //full 버전 검색하는 메소드
     public Object searchFull(String type, String keyword, int page, int size, String sort) {
-        Pageable pageable = PageRequest.of(page - 1, size, getSort(type, sort));
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+
+        Pageable pageable = PageRequest.of(safePage - 1, safeSize, getSort(type, sort));
 
         if (type.equals("BOOK")) {
             Page<Book> books = bookRepository.searchBooks(keyword, pageable);
@@ -125,7 +128,7 @@ public class SearchService {
                                     q.getScrapCount()
                             ))
                             .toList(),
-                    new PageInfoDto(page, questions.getTotalPages(), (int) questions.getTotalElements())
+                    new PageInfoDto(safePage, questions.getTotalPages(), (int) questions.getTotalElements())
             );
 
         } else { // type == ANSWER
@@ -144,7 +147,7 @@ public class SearchService {
                                     a.getLikeCount()
                             ))
                             .toList(),
-                    new PageInfoDto(page, answers.getTotalPages(), (int) answers.getTotalElements())
+                    new PageInfoDto(safePage, answers.getTotalPages(), (int) answers.getTotalElements())
             );
         }
     }

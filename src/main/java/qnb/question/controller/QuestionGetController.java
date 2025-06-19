@@ -22,6 +22,10 @@ public class QuestionGetController {
             @RequestParam(defaultValue = "1") int page, //page 기본값 1
             @RequestParam(defaultValue = "5") int size)//page당 질문수 기본값 5
     {
+        // page는 최소 1, size는 최소 1 최대 50 제한
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+
         QuestionPageResponseDto response = questionService.getRecentQuestions(page, size);
         return ResponseEntity.ok(response);
     }

@@ -29,6 +29,10 @@ public class SearchController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "latest") String sort
     ) {
+
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+
         if (mode.equals("summary")) {
             if (keyword == null || keyword.trim().isEmpty()) {
                 throw new SearchNoResultException();
@@ -41,7 +45,7 @@ public class SearchController {
                 throw new MissingFieldException();
             }
             return ResponseEntity.ok(
-                    searchService.searchFull(type, keyword, page, size, sort)
+                    searchService.searchFull(type, keyword, safePage, safeSize, sort)
             );
         }
 

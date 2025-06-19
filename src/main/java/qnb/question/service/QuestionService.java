@@ -31,12 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.LinkedHashMap;
 
 
 @Service
@@ -112,32 +108,44 @@ public class QuestionService {
         questionRepository.delete(question);
     }
 
-    //최신 질문 조회 메소드
+    // 최신 질문 조회 메소드
     public QuestionPageResponseDto getRecentQuestions(int page, int size) {
+        // page가 1보다 작으면 1로 보정
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+
         Pageable pageable = PageRequest.of(
-                page-1, //Spring은 0부터 시작하므로 1 빼줌
-                size,
-                Sort.by(Sort.Direction.DESC, "createdAt") //최신순 정렬
+                safePage - 1,
+                safeSize,
+                Sort.by(Sort.Direction.DESC, "createdAt")
         );
+
         Page<Question> questionPage = questionRepository.findAll(pageable);
 
         if (questionPage.isEmpty()) {
-            throw new QuestionNotFoundException();
+            List<QuestionResponseDto> questions = Collections.emptyList();
+
+            PageInfoDto pageInfoDto = new PageInfoDto(
+                    safePage,  // 요청한 페이지
+                    questionPage.getTotalPages(),
+                    questionPage.getTotalElements()
+            );
+
+            return new QuestionPageResponseDto(questions, pageInfoDto);
         }
 
         List<QuestionResponseDto> questions = questionPage.getContent().stream()
-                .map(question -> QuestionResponseDto.from(question, 0))
+                .map(question -> QuestionResponseDto.from(question, 0)) // answerCount는 0으로 고정
                 .collect(Collectors.toList());
-        //이 부분에서 answeCount는 반환되지 않으므로 해당값 0으로 변환시킴
 
         PageInfoDto pageInfoDto = new PageInfoDto(
                 questionPage.getNumber() + 1,  // 1-based
                 questionPage.getTotalPages(),
                 questionPage.getTotalElements()
         );
-
         return new QuestionPageResponseDto(questions, pageInfoDto);
     }
+
 
     //질문 상세 조회 메소드
     public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort) {
