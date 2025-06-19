@@ -30,13 +30,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+
 
 @Service
 @RequiredArgsConstructor
@@ -145,9 +146,9 @@ public class QuestionService {
 
         // 답변 정렬 기준 처리
         List<Answer> answers = answerRepository.findByQuestionId(questionId);
-        Comparator<Answer> comparator = sort.equals("popular")
+        Comparator<Answer> comparator = "popular".equals(sort)
                 ? Comparator.comparing(Answer::getLikeCount).reversed()
-                : Comparator.comparing(Answer::getCreatedAt).reversed();
+                : Comparator.comparing(Answer::getCreatedAt);
 
         // 질문 정보 DTO로 변환 (답변 수 포함)
         QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
@@ -155,7 +156,11 @@ public class QuestionService {
         // 사용자 기준으로 묶기
         Map<Long, List<Answer>> grouped = answers.stream()
                 .sorted(comparator)
-                .collect(Collectors.groupingBy(Answer::getUserId));
+                .collect(Collectors.groupingBy(
+                        Answer::getUserId,
+                        LinkedHashMap::new,  // ← 입력 순서 유지
+                        Collectors.toList()
+                ));
 
         List<AnswersByUserDto> answersByUser = new ArrayList<>();
         for (Map.Entry<Long, List<Answer>> entry : grouped.entrySet()) {
@@ -167,6 +172,7 @@ public class QuestionService {
 
             // 답변 리스트 DTO로 변환
             List<AnswerResponseDto> answerDtos = entry.getValue().stream()
+                    .sorted(Comparator.comparing(Answer::getCreatedAt))  // 다시 정렬
                     .map(answer -> AnswerResponseDto.from(
                             answer,
                             user.getUserId().toString(),
