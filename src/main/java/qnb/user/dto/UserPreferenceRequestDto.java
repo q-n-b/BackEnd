@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 
-@Data //Lombok의 어노테이션들 다 포함
+@Data
 public class UserPreferenceRequestDto {
     @NotNull
     private Integer readingAmount; //독서량,단일선택

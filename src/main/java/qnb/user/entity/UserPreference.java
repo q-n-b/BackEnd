@@ -30,7 +30,5 @@ public class UserPreference {
     @ElementCollection
     @CollectionTable(name = "user_preference_book_id")
     private List<Integer> bookId; // bookId로 저장
-
-    // Getters and Setters 생략 가능 (Lombok 사용 시 @Getter, @Setter)
 }
 
