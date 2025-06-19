@@ -11,6 +11,7 @@ import qnb.book.entity.UserRecommendedBook;
 import qnb.book.repository.BookRepository;
 import qnb.book.repository.UserRecommendedBookRepository;
 import qnb.common.dto.PageInfoDto;
+import qnb.common.exception.UserNotFoundException;
 import qnb.question.dto.QuestionListResponseDto;
 import qnb.question.dto.QuestionResponseDto;
 import qnb.question.entity.Question;
@@ -20,6 +21,9 @@ import qnb.common.exception.BookNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import qnb.user.entity.User;
+import qnb.user.repository.UserRepository;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +36,8 @@ public class BookService {
     private final UserRecommendedBookRepository recommendedBookRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
+    private final UserRepository userRepository;
+
 
     //도서 존재 여부 로직
     public boolean existsById(Integer bookId) {
@@ -39,12 +45,13 @@ public class BookService {
     }
 
     // 0. 개인 추천 도서 1권 조회 (추천 이유 포함)
-    public SingleRecommendedBookResponseDto getSingleRecommendedBook() {
-        UserRecommendedBook rec = recommendedBookRepository
-                .findTopByOrderByRecommendedAtDesc()
-                .orElseThrow(() -> new RuntimeException("추천 도서를 찾을 수 없습니다."));
+    public SingleRecommendedBookResponseDto getSingleRecommendedBook(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException());
 
-        Book book = rec.getBook();
+        UserRecommendedBook rec = recommendedBookRepository
+                .findTopByUserOrderByRecommendedAtDesc(user)
+                .orElseThrow(() -> new RuntimeException("추천 도서를 찾을 수 없습니다."));
 
         return new SingleRecommendedBookResponseDto(
                 rec.getBook(),
@@ -55,12 +62,17 @@ public class BookService {
 
 
     // 1. 개인 추천 도서 리스트 조회
-    public List<BookResponseDto> getRecommendedBooks() {
-        List<UserRecommendedBook> list = recommendedBookRepository.findAll();
+    public List<BookResponseDto> getRecommendedBooks(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        List<UserRecommendedBook> list = recommendedBookRepository.findAllByUserOrderByRecommendedAtDesc(user);
+
         return list.stream()
                 .map(rec -> new BookResponseDto(rec.getBook()))
                 .toList();
     }
+
 
     // 2. 장르별 추천 도서 리스트 조회
     public List<BookResponseDto> getRecommendedBooksByGenre(String genre) {

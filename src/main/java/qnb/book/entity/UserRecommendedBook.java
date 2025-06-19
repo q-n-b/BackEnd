@@ -2,6 +2,7 @@ package qnb.book.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import qnb.user.entity.User;
 
 import java.time.LocalDateTime;
 
@@ -23,8 +24,10 @@ public class UserRecommendedBook {
     private String reason;   // 추천 이유 (예: question, search)
     private String keyword;  // 추천 키워드 (예: 아포칼립스)
 
-    @Column(name = "user_id")
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
 
     @Column(name = "recommended_at")
     private LocalDateTime recommendedAt;

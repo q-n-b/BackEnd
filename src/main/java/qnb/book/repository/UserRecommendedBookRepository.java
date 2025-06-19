@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import qnb.user.entity.User;
 
 import java.util.Optional;
 import java.util.List;
@@ -20,7 +21,8 @@ public interface UserRecommendedBookRepository extends JpaRepository<UserRecomme
     List<UserRecommendedBook> findByBookGenre(@Param("genre") String genre);
 
     // 최근 개인 추천 도서 중 가장 최근 1권만 가져오는 메서드
-    Optional<UserRecommendedBook> findTopByOrderByRecommendedAtDesc();
+    Optional<UserRecommendedBook> findTopByUserOrderByRecommendedAtDesc(User user);
 
+    List<UserRecommendedBook> findAllByUserOrderByRecommendedAtDesc(User user);
 }
 
