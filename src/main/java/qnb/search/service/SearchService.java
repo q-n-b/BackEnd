@@ -115,7 +115,7 @@ public class SearchService {
             Page<Question> questions;
 
             if (keyword == null || keyword.trim().isEmpty()) {
-                questions = questionRepository.findAllWithoutJoin(pageable);
+                questions = questionRepository.findAllWithBook(pageable);
             } else {
                 questions = questionRepository.searchQuestions(keyword, pageable);
             }
