@@ -111,7 +111,13 @@ public class SearchService {
             );
 
         } else if (type.equals("QUESTION")) {
-            Page<Question> questions = questionRepository.searchQuestions(keyword, pageable);
+            Page<Question> questions;
+
+            if (keyword == null || keyword.trim().isEmpty()) {
+                questions = questionRepository.findAllWithBook(pageable);
+            } else {
+                questions = questionRepository.searchQuestions(keyword, pageable);
+            }
 
             return new QuestionSearchResponseDto(
                     questions.getContent().stream()
@@ -130,7 +136,6 @@ public class SearchService {
                             .toList(),
                     new PageInfoDto(safePage, questions.getTotalPages(), (int) questions.getTotalElements())
             );
-
         } else { // type == "ANSWER"
             Page<Answer> answers = answerRepository.searchAnswers(keyword, pageable);
 
