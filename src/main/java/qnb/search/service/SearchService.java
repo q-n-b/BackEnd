@@ -152,13 +152,13 @@ public class SearchService {
         }
     }
 
-
     private Sort getSort(String type, String sort) {
-        if (type.equals("BOOK")) {
-            return Sort.by("title").ascending(); // 책은 정렬 옵션 고정해도 됨
-        } else if (sort.equals("popular")) {
+        if ("BOOK".equals(type)) {
+            return Sort.by("title").ascending().and(Sort.by("bookId").descending());
+        } else if ("popular".equals(sort)) {
             return Sort.by("likeCount").descending();
         }
-        return Sort.by("createdAt").descending(); // 기본: 최신순
+        return Sort.by("createdAt").descending();
     }
+
 }

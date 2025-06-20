@@ -42,5 +42,4 @@ public class Question {
     @Column(name = "answer_count", nullable = false)
     private int answerCount = 0;
 
-
 }
