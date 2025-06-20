@@ -12,6 +12,7 @@ import qnb.book.dto.BookSimpleDto;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
 import qnb.common.dto.PageInfoDto;
+import qnb.question.dto.QuestionSimpleDto;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
 import qnb.search.dto.Full.*;
@@ -144,6 +145,10 @@ public class SearchService {
                             .map(a -> new AnswerSearchOneDto(
                                     a.getAnswerId(),
                                     a.getAnswerContent(),
+                                    new QuestionSimpleDto(
+                                            a.getQuestion().getQuestionId().longValue(),
+                                            a.getQuestion().getQuestionContent()
+                                    ),
                                     new BookSimpleDto(
                                             a.getQuestion().getBook().getBookId(),
                                             a.getQuestion().getBook().getTitle(),

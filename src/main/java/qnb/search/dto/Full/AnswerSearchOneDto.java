@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import qnb.book.dto.BookSimpleDto;
+import qnb.question.dto.QuestionSimpleDto;
 
 @Getter
 @NoArgsConstructor
@@ -12,6 +13,7 @@ import qnb.book.dto.BookSimpleDto;
 public class AnswerSearchOneDto {
     private Long answerId;
     private String answerContent;
+    private QuestionSimpleDto question;
     private BookSimpleDto book;
     private int likeCount;
 }
