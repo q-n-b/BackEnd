@@ -114,22 +114,21 @@ public class QuestionService {
         int safePage = Math.max(page, 1);
         int safeSize = Math.min(Math.max(size, 1), 50);
 
-        System.out.println("📥 getRecentQuestions() called - page: " + page + ", size: " + size);
-
-
         Pageable pageable = PageRequest.of(
-                safePage - 1,
+                safePage - 1, //스프링은 0부터 시작하니까
                 safeSize,
-                Sort.by(Sort.Direction.DESC, "createdAt")
+                Sort.by(Sort.Direction.DESC, "createdAt") //최신순 정렬
         );
 
         Page<Question> questionPage = questionRepository.findAll(pageable);
 
+        //결과가 비었을 경우 처리
         if (questionPage.isEmpty()) {
+            //빈 리스트로 반환
             List<QuestionResponseDto> questions = Collections.emptyList();
 
             PageInfoDto pageInfoDto = new PageInfoDto(
-                    safePage,  // 요청한 페이지
+                    safePage,  // 클라이언트가 요청한 페이지 그대로 사용
                     questionPage.getTotalPages(),
                     questionPage.getTotalElements()
             );
@@ -138,11 +137,13 @@ public class QuestionService {
         }
 
         List<QuestionResponseDto> questions = questionPage.getContent().stream()
-                .map(question -> QuestionResponseDto.from(question, 0)) // answerCount는 0으로 고정
+                .map(question -> QuestionResponseDto.from(question, 0))
+                // answerCount는 0으로 고정
                 .collect(Collectors.toList());
 
         PageInfoDto pageInfoDto = new PageInfoDto(
-                questionPage.getNumber() + 1,  // 1-based
+                // Spring의 0-based index → 1-based로 변환
+                questionPage.getNumber() + 1,
                 questionPage.getTotalPages(),
                 questionPage.getTotalElements()
         );

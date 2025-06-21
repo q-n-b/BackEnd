@@ -1,11 +1,11 @@
 package qnb.book.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 import qnb.answer.entity.Answer;
 import qnb.answer.repository.AnswerRepository;
-import qnb.book.dto.BookResponseDto;
-import qnb.book.dto.BookSimpleDto;
-import qnb.book.dto.SingleRecommendedBookResponseDto;
+import qnb.book.dto.*;
 import qnb.book.entity.Book;
 import qnb.book.entity.UserRecommendedBook;
 import qnb.book.repository.BookRepository;
@@ -44,21 +44,34 @@ public class BookService {
         return bookRepository.existsById(bookId);
     }
 
-    // 0. 개인 추천 도서 1권 조회 (추천 이유 포함)
+   /* // 0. 개인 추천 도서 1권 조회 (추천 이유 포함)
+    //ML 추천 → DB에 저장 → 이후 이력 기반 응답
     public SingleRecommendedBookResponseDto getSingleRecommendedBook(Long userId) {
+        // 사용자 정보 조회
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException());
+                .orElseThrow(UserNotFoundException::new);
 
-        UserRecommendedBook rec = recommendedBookRepository
-                .findTopByUserOrderByRecommendedAtDesc(user)
-                .orElseThrow(() -> new RuntimeException("추천 도서를 찾을 수 없습니다."));
+        // ML 요청
+        RecommendationRequestDto requestDto = new RecommendationRequestDto(userId, user.getReadingPreferences());
+        String mlUrl = "http://<ML_SERVER_IP>:<PORT>/recommend/one";
 
-        return new SingleRecommendedBookResponseDto(
-                rec.getBook(),
-                rec.getReason(),   // 여기에서 reason 꺼냄
-                rec.getKeyword()    // 예: "아포칼립스"
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<RecommendationResponseDto> response = restTemplate.postForEntity(
+                mlUrl, requestDto, RecommendationResponseDto.class
         );
-    }
+
+        // Book 조회
+        RecommendationResponseDto data = response.getBody();
+        Book book = bookRepository.findById(data.getBookId().intValue())
+                .orElseThrow(BookNotFoundException::new);
+
+        // 추천 기록 저장
+        UserRecommendedBook rec = new UserRecommendedBook(user, book, data.getReason(), data.getKeyword());
+        recommendedBookRepository.save(rec);
+
+        // 응답 반환
+        return new SingleRecommendedBookResponseDto(book, data.getReason(), data.getKeyword());
+    }*/
 
 
     // 1. 개인 추천 도서 리스트 조회

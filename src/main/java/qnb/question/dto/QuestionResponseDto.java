@@ -39,10 +39,6 @@ public class QuestionResponseDto {
     }
 
     public static QuestionResponseDto from(Question question, int answerCount) {
-        System.out.println("✅ Question ID: " + question.getQuestionId());
-        System.out.println("📚 Book: " + question.getBook());
-        System.out.println("👤 User: " + question.getUser());
-
         return new QuestionResponseDto(
                 BookResponseDto.from(question.getBook()),
                 question.getUser().getUserId(),

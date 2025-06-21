@@ -97,13 +97,18 @@ public class SearchService {
         );
     }
 
+    //----------------------------------------------------------
     // full 버전 검색하는 메소드
     public Object searchFull(String type, String keyword, int page, int size, String sort) {
-        int safePage = Math.max(page - 1, 0);
-        int safeSize = Math.min(Math.max(size, 1), 50); // 최소 1 ~ 최대 50
+        int safePage = Math.max(page, 1); //1부터 시작하는 페이지 번호 (최소 1), currentPage 초기값 1
+        int safeSize = Math.min(Math.max(size, 1), 50); //한 페이지당 항목 개수 (1 ~ 50 사이 제한)
 
-        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.unsorted());
+        Pageable pageable = PageRequest.of(
+                safePage-1, //스프링은 0부터 시작하니까
+                safeSize,
+                Sort.unsorted());
 
+        //1. 책 검색 결과
         if (type.equals("BOOK")) {
             Page<Book> books = bookRepository.searchBooks(keyword, pageable);
 
@@ -111,11 +116,18 @@ public class SearchService {
                     books.getContent().stream()
                             .map(book -> BookSearchOneDto.from(book, book.getScrapCount()))
                             .toList(),
-                    new PageInfoDto(safePage, books.getTotalPages(), (int) books.getTotalElements())
+                    new PageInfoDto(
+                            safePage,
+                            books.getTotalPages(),
+                            (int) books.getTotalElements()
+                    )
             );
 
-        } else if (type.equals("QUESTION")) {
+        }
 
+        //2. 질문 검색 결과
+        else if (type.equals("QUESTION")) {
+            //키워드 없을 때
             if (keyword == null || keyword.trim().isEmpty()) {
                 QuestionPageResponseDto recentResult = questionService.getRecentQuestions(safePage, safeSize);
 
@@ -138,8 +150,10 @@ public class SearchService {
                         resultList,
                         recentResult.getPageInfoDto()
                 );
-            } else {
-                //키워드 존재할 때
+            }
+
+            //키워드 존재할 때
+            else {
                 Page<Question> questions = questionRepository.searchQuestions(keyword, pageable);
 
                 return new QuestionSearchResponseDto(
@@ -157,11 +171,16 @@ public class SearchService {
                                         q.getScrapCount()
                                 ))
                                 .toList(),
-                        new PageInfoDto(safePage, questions.getTotalPages(), (int) questions.getTotalElements())
+                        new PageInfoDto(
+                                safePage,
+                                questions.getTotalPages(),
+                                (int) questions.getTotalElements())
                 );
             }
         }
-        else { // type == "ANSWER"
+
+        //3. 답변 검색 결과
+        else {
             Page<Answer> answers = answerRepository.searchAnswers(keyword, pageable);
 
             return new AnswerSearchResponseDto(
@@ -181,18 +200,11 @@ public class SearchService {
                                     a.getLikeCount()
                             ))
                             .toList(),
-                    new PageInfoDto(safePage, answers.getTotalPages(), (int) answers.getTotalElements())
+                    new PageInfoDto(safePage,
+                            answers.getTotalPages(),
+                            (int) answers.getTotalElements())
             );
         }
-    }
-
-    private Sort getSort(String type, String sort) {
-        if ("BOOK".equals(type)) {
-            return Sort.by("title").ascending().and(Sort.by("bookId").descending());
-        } else if ("popular".equals(sort)) {
-            return Sort.by("likeCount").descending();
-        }
-        return Sort.by("createdAt").descending();
     }
 
 }

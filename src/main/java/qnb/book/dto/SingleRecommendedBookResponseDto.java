@@ -1,6 +1,7 @@
 package qnb.book.dto;
 
 //개인 추천 도서 1권 조회 dto 파일
+//프론트에 최종 응답할 추천 도서 데이터
 //추천 이유, 키워드 포함
 
 import qnb.book.entity.Book;
