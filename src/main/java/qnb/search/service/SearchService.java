@@ -12,9 +12,11 @@ import qnb.book.dto.BookSimpleDto;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
 import qnb.common.dto.PageInfoDto;
+import qnb.question.dto.QuestionPageResponseDto;
 import qnb.question.dto.QuestionSimpleDto;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
+import qnb.question.service.QuestionService;
 import qnb.search.dto.Full.*;
 import qnb.search.dto.SummarySearchResponseDto;
 import qnb.search.dto.summary.AnswerSummaryDto;
@@ -33,6 +35,7 @@ public class SearchService {
     private final BookRepository bookRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
+    private final QuestionService questionService;
 
     //요약 버전 생성하는 메소드
     public BookSummaryDto createBookSummary(String keyword) {
@@ -99,9 +102,13 @@ public class SearchService {
         int safePage = Math.max(page, 0); // 음수 방지
         int safeSize = Math.min(Math.max(size, 1), 50); // 최소 1 ~ 최대 50
 
-        Pageable pageable = PageRequest.of(safePage, safeSize, getSort(type, sort)); // 과보정 제거
+        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.unsorted());
+
+        // 로그: keyword 값 확인
+        System.out.println("🔍 검색 시작 - type: " + type + ", keyword: [" + keyword + "], page: " + safePage + ", size: " + safeSize);
 
         if (type.equals("BOOK")) {
+            System.out.println("📚 책 검색 시작");
             Page<Book> books = bookRepository.searchBooks(keyword, pageable);
 
             return new BookSearchResponseDto(
@@ -112,32 +119,62 @@ public class SearchService {
             );
 
         } else if (type.equals("QUESTION")) {
-            Page<Question> questions;
+            System.out.println("❓ 질문 검색 시작");
 
             if (keyword == null || keyword.trim().isEmpty()) {
-                questions = questionRepository.findAll(pageable);
-            } else {
-                questions = questionRepository.searchQuestions(keyword, pageable);
-            }
+                System.out.println("⚠️ keyword가 공백이므로 최신 질문 목록 재사용");
 
-            return new QuestionSearchResponseDto(
-                    questions.getContent().stream()
-                            .map(q -> new QuestionSearchOneDto(
-                                    q.getQuestionId().longValue(),
-                                    q.getQuestionContent(),
-                                    new BookSimpleDto(
-                                            q.getBook().getBookId(),
-                                            q.getBook().getTitle(),
-                                            q.getBook().getImageUrl()
-                                    ),
-                                    q.getAnswerCount(),
-                                    q.getLikeCount(),
-                                    q.getScrapCount()
-                            ))
-                            .toList(),
-                    new PageInfoDto(safePage, questions.getTotalPages(), (int) questions.getTotalElements())
-            );
-        } else { // type == "ANSWER"
+                QuestionPageResponseDto recentResult = questionService.getRecentQuestions(safePage -1, safeSize);
+
+                System.out.println("📦 getRecentQuestions 결과 수: " + recentResult.getQuestions().size());
+
+
+                // ✅ QuestionResponseDto → QuestionSearchOneDto 변환
+                List<QuestionSearchOneDto> resultList = recentResult.getQuestions().stream()
+                        .map(q -> new QuestionSearchOneDto(
+                                q.getQuestionId().longValue(),
+                                q.getQuestionContent(),
+                                new BookSimpleDto(  // BookResponseDto → BookSimpleDto 변환
+                                        q.getBook().getBookId(),
+                                        q.getBook().getTitle(),
+                                        q.getBook().getImageUrl()
+                                ),
+                                q.getAnswerCount(),
+                                q.getLikeCount(),
+                                q.getScrapCount()
+                        ))
+                        .toList();
+
+                return new QuestionSearchResponseDto(
+                        resultList,
+                        recentResult.getPageInfoDto()
+                );
+            } else {
+                System.out.println("✅ keyword가 존재하므로 searchQuestions() 실행");
+
+                Page<Question> questions = questionRepository.searchQuestions(keyword, pageable);
+
+                return new QuestionSearchResponseDto(
+                        questions.getContent().stream()
+                                .map(q -> new QuestionSearchOneDto(
+                                        q.getQuestionId().longValue(),
+                                        q.getQuestionContent(),
+                                        new BookSimpleDto(
+                                                q.getBook().getBookId(),
+                                                q.getBook().getTitle(),
+                                                q.getBook().getImageUrl()
+                                        ),
+                                        q.getAnswerCount(),
+                                        q.getLikeCount(),
+                                        q.getScrapCount()
+                                ))
+                                .toList(),
+                        new PageInfoDto(safePage, questions.getTotalPages(), (int) questions.getTotalElements())
+                );
+            }
+        }
+        else { // type == "ANSWER"
+            System.out.println("📝 답변 검색 시작");
             Page<Answer> answers = answerRepository.searchAnswers(keyword, pageable);
 
             return new AnswerSearchResponseDto(
