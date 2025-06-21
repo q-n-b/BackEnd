@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class RecommendationRequestDto {
     private Long userId;
-    private List<String> favoriteGenres;
+    private List<Integer> preferredGenres;
     private int importantFactor;
 }
 

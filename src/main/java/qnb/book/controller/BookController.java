@@ -51,7 +51,7 @@ public class BookController {
             @RequestParam(required = false) Long userId
     ) {
         return switch (type) {
-            /*case "recommendations" -> {
+            case "recommendations" -> {
                 if (limit != null && limit == 1) {
                     // 개인 추천 도서 1권 조회
                     yield ResponseEntity.ok(bookService.getSingleRecommendedBook(userId));
@@ -59,7 +59,7 @@ public class BookController {
                 // 개인 추천 도서 전체 조회
                 yield ResponseEntity.ok(bookService.getRecommendedBooks(userId));
             }
-*/
+
             // 장르별 추천 도서
             case "category-recommendations" ->
                     ResponseEntity.ok(bookService.getRecommendedBooksByGenre(category));

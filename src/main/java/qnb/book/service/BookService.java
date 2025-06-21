@@ -22,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import qnb.user.entity.User;
+import qnb.user.entity.UserPreference;
+import qnb.user.repository.UserPreferenceRepository;
 import qnb.user.repository.UserRepository;
 
 import java.util.List;
@@ -37,22 +39,31 @@ public class BookService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
-
+    private final UserPreferenceRepository userPreferenceRepository;
 
     //도서 존재 여부 로직
     public boolean existsById(Integer bookId) {
         return bookRepository.existsById(bookId);
     }
 
-   /* // 0. 개인 추천 도서 1권 조회 (추천 이유 포함)
+    // 0. 개인 추천 도서 1권 조회 (추천 이유 포함)
     //ML 추천 → DB에 저장 → 이후 이력 기반 응답
+    //userId를 기준으로 추천 도서 1권을 받아오는 서비스 메소드.
     public SingleRecommendedBookResponseDto getSingleRecommendedBook(Long userId) {
+
         // 사용자 정보 조회
-        User user = userRepository.findById(userId)
+        UserPreference userPreference = userPreferenceRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
+        User user = userPreference.getUser();
 
         // ML 요청
-        RecommendationRequestDto requestDto = new RecommendationRequestDto(userId, user.getReadingPreferences());
+        RecommendationRequestDto requestDto = new RecommendationRequestDto(
+                userId,
+                userPreference.getPreferredGenres(),
+                userPreference.getImportantFactor()
+        );
+
+        //호출할 ML 서버의 추천 API URL
         String mlUrl = "http://<ML_SERVER_IP>:<PORT>/recommend/one";
 
         RestTemplate restTemplate = new RestTemplate();
@@ -60,19 +71,23 @@ public class BookService {
                 mlUrl, requestDto, RecommendationResponseDto.class
         );
 
-        // Book 조회
+        // 추천받은 Book 조회
         RecommendationResponseDto data = response.getBody();
         Book book = bookRepository.findById(data.getBookId().intValue())
                 .orElseThrow(BookNotFoundException::new);
 
         // 추천 기록 저장
-        UserRecommendedBook rec = new UserRecommendedBook(user, book, data.getReason(), data.getKeyword());
+        UserRecommendedBook rec = new UserRecommendedBook(
+                user,
+                book,
+                data.getReason(),
+                data.getKeyword()
+        );
         recommendedBookRepository.save(rec);
 
-        // 응답 반환
+        // 응답 반환 (추천 책 + 추천 이유)
         return new SingleRecommendedBookResponseDto(book, data.getReason(), data.getKeyword());
-    }*/
-
+    }
 
     // 1. 개인 추천 도서 리스트 조회
     public List<BookResponseDto> getRecommendedBooks(Long userId) {

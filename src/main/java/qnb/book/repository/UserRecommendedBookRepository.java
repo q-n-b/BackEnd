@@ -20,9 +20,6 @@ public interface UserRecommendedBookRepository extends JpaRepository<UserRecomme
     @Query("SELECT r FROM UserRecommendedBook r WHERE r.book.genre = :genre")
     List<UserRecommendedBook> findByBookGenre(@Param("genre") String genre);
 
-    // 최근 개인 추천 도서 중 가장 최근 1권만 가져오는 메서드
-    Optional<UserRecommendedBook> findTopByUserOrderByRecommendedAtDesc(User user);
-
     List<UserRecommendedBook> findAllByUserOrderByRecommendedAtDesc(User user);
 }
 

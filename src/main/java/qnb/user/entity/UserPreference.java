@@ -19,9 +19,10 @@ public class UserPreference {
     private User user;
 
     private Integer readingAmount;
+
     private Integer importantFactor;
 
-    @ElementCollection //별도 테이블 분리해서 저장
+    @ElementCollection
     private List<Integer> preferredGenres;
 
     @ElementCollection
