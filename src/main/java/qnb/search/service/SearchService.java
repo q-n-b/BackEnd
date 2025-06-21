@@ -102,17 +102,9 @@ public class SearchService {
         int safePage = Math.max(page - 1, 0);
         int safeSize = Math.min(Math.max(size, 1), 50); // 최소 1 ~ 최대 50
 
-
-        System.out.println("📢 searchFull 진입 - 원본 page: " + page + ", size: " + size);
-        System.out.println("📢 보정된 safePage: " + safePage + ", safeSize: " + safeSize);
-
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.unsorted());
 
-        // 로그: keyword 값 확인
-        System.out.println("🔍 검색 시작 - type: " + type + ", keyword: [" + keyword + "], page: " + safePage + ", size: " + safeSize);
-
         if (type.equals("BOOK")) {
-            System.out.println("📚 책 검색 시작");
             Page<Book> books = bookRepository.searchBooks(keyword, pageable);
 
             return new BookSearchResponseDto(
@@ -123,19 +115,10 @@ public class SearchService {
             );
 
         } else if (type.equals("QUESTION")) {
-            System.out.println("❓ 질문 검색 시작");
-
-            System.out.println("🔑 keyword = [" + keyword + "]");
 
             if (keyword == null || keyword.trim().isEmpty()) {
-                System.out.println("⚠️ keyword가 공백이므로 최신 질문 목록 재사용");
-
                 QuestionPageResponseDto recentResult = questionService.getRecentQuestions(safePage, safeSize);
 
-                System.out.println("📦 getRecentQuestions 결과 수: " + recentResult.getQuestions().size());
-
-
-                // ✅ QuestionResponseDto → QuestionSearchOneDto 변환
                 List<QuestionSearchOneDto> resultList = recentResult.getQuestions().stream()
                         .map(q -> new QuestionSearchOneDto(
                                 q.getQuestionId().longValue(),
@@ -156,8 +139,7 @@ public class SearchService {
                         recentResult.getPageInfoDto()
                 );
             } else {
-                System.out.println("✅ keyword가 존재하므로 searchQuestions() 실행");
-
+                //키워드 존재할 때
                 Page<Question> questions = questionRepository.searchQuestions(keyword, pageable);
 
                 return new QuestionSearchResponseDto(
@@ -180,7 +162,6 @@ public class SearchService {
             }
         }
         else { // type == "ANSWER"
-            System.out.println("📝 답변 검색 시작");
             Page<Answer> answers = answerRepository.searchAnswers(keyword, pageable);
 
             return new AnswerSearchResponseDto(
