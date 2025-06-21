@@ -114,6 +114,9 @@ public class QuestionService {
         int safePage = Math.max(page, 1);
         int safeSize = Math.min(Math.max(size, 1), 50);
 
+        System.out.println("📥 getRecentQuestions() called - page: " + page + ", size: " + size);
+
+
         Pageable pageable = PageRequest.of(
                 safePage - 1,
                 safeSize,

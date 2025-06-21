@@ -47,12 +47,10 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     List<Question> findQuestionsForSummary(@Param("keyword") String keyword);
 
     //키워드로 질문 검색(full)
-    @Query(
-            value = "SELECT * FROM question WHERE LOWER(question_content) LIKE CONCAT('%', LOWER(:keyword), '%') ORDER BY created_at DESC",
-            countQuery = "SELECT COUNT(*) FROM question WHERE LOWER(question_content) LIKE CONCAT('%', LOWER(:keyword), '%')",
-            nativeQuery = true
-    )
+    @Query("SELECT q FROM Question q WHERE LOWER(q.questionContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Question> searchQuestions(@Param("keyword") String keyword, Pageable pageable);
+
+
 
 
 

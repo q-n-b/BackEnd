@@ -26,6 +26,9 @@ public class QuestionGetController {
         int safePage = Math.max(page-1, 0);
         int safeSize = Math.min(Math.max(size, 1), 50);
 
+        System.out.println("✅ [searchFull] 최종 safeSize: " + safeSize);
+
+
         QuestionPageResponseDto response = questionService.getRecentQuestions(page, size);
         return ResponseEntity.ok(response);
     }

@@ -41,7 +41,9 @@ public class SearchController {
         }
 
         if (mode.equals("full")) {
+            System.out.println("🔧 [SearchController] page: " + page + ", size: " + size);
             if (type == null || (!type.equals("BOOK") && !type.equals("QUESTION") && !type.equals("ANSWER"))) {
+
                 throw new MissingFieldException();
             }
             return ResponseEntity.ok(

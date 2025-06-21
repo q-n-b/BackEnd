@@ -99,8 +99,12 @@ public class SearchService {
 
     // full 버전 검색하는 메소드
     public Object searchFull(String type, String keyword, int page, int size, String sort) {
-        int safePage = Math.max(page, 0); // 음수 방지
+        int safePage = Math.max(page - 1, 0);
         int safeSize = Math.min(Math.max(size, 1), 50); // 최소 1 ~ 최대 50
+
+
+        System.out.println("📢 searchFull 진입 - 원본 page: " + page + ", size: " + size);
+        System.out.println("📢 보정된 safePage: " + safePage + ", safeSize: " + safeSize);
 
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.unsorted());
 
@@ -121,10 +125,12 @@ public class SearchService {
         } else if (type.equals("QUESTION")) {
             System.out.println("❓ 질문 검색 시작");
 
+            System.out.println("🔑 keyword = [" + keyword + "]");
+
             if (keyword == null || keyword.trim().isEmpty()) {
                 System.out.println("⚠️ keyword가 공백이므로 최신 질문 목록 재사용");
 
-                QuestionPageResponseDto recentResult = questionService.getRecentQuestions(safePage -1, safeSize);
+                QuestionPageResponseDto recentResult = questionService.getRecentQuestions(safePage, safeSize);
 
                 System.out.println("📦 getRecentQuestions 결과 수: " + recentResult.getQuestions().size());
 
