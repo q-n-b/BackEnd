@@ -29,9 +29,6 @@ public class UserPreferenceService {
             throw new AccessDeniedException("이미 취향조사를 완료한 사용자입니다.");
         }
 
-        // 취향조사 완료 상태로 변경
-        user.setHasReadingTaste(true);
-
         UserPreference preference = new UserPreference();
         preference.setUser(user);
         preference.setReadingAmount(dto.getReadingAmount());
@@ -40,8 +37,11 @@ public class UserPreferenceService {
         preference.setPreferredKeywords(dto.getPreferredKeywords());
         preference.setPreferredBookId(dto.getBookId());
 
-        // 사용자, 취향 정보 저장
-        userRepository.save(user);
+        // ✅ 1. 취향 정보 저장
         preferenceRepository.save(preference);
+
+        // ✅ 2. 오류 없이 저장된 경우에만 true로 업데이트
+        user.setHasReadingTaste(true);
+        userRepository.save(user);
     }
 }
