@@ -157,7 +157,7 @@ public class QuestionService {
                 .orElseThrow(QuestionNotFoundException::new);
 
         // 답변 정렬 기준 처리
-        List<Answer> answers = answerRepository.findByQuestionId(questionId);
+        List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
         Comparator<Answer> comparator = "popular".equals(sort)
                 ? Comparator.comparing(Answer::getLikeCount).reversed()
                 : Comparator.comparing(Answer::getCreatedAt);

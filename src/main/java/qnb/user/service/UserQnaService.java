@@ -31,7 +31,7 @@ public class UserQnaService {
             List<Question> myQuestions = questionRepository.findByUser_UserId(userId);
 
             for (Question q : myQuestions) {
-                List<Answer> answers = answerRepository.findByQuestionId(Long.valueOf(q.getQuestionId()));
+                List<Answer> answers = answerRepository.findByQuestion_QuestionId(Long.valueOf(q.getQuestionId()));
                 resultMap.putIfAbsent(Long.valueOf(q.getQuestionId()), UserQnaResponseDto.fromQuestion(q, answers));
             }
         }
@@ -41,12 +41,12 @@ public class UserQnaService {
             List<Answer> myAnswers = answerRepository.findByUserId(userId);
 
             for (Answer a : myAnswers) {
-                Integer questionId = a.getQuestionId().intValue();
+                Integer questionId = a.getQuestion().getQuestionId();
                 if (!resultMap.containsKey(questionId)) {
                     Question q = questionRepository.findById(questionId)
                             .orElseThrow(QuestionNotFoundException::new);
 
-                    List<Answer> answers = answerRepository.findByQuestionId(Long.valueOf(questionId));
+                    List<Answer> answers = answerRepository.findByQuestion_QuestionId(Long.valueOf(questionId));
                     resultMap.put(Long.valueOf(questionId), UserQnaResponseDto.fromAnswer(q, answers));
 
                 }

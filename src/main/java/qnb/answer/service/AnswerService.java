@@ -25,31 +25,34 @@ public class AnswerService {
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
 
-
     //답변 등록
     public AnswerResponseDto registerAnswer(Long questionId, Long userId, String userNickname, String profileUrl, AnswerRequestDto dto) {
+        // 질문 조회
+        Question question = questionRepository.findById(questionId.intValue())
+                .orElseThrow(QuestionNotFoundException::new);
+
+        // 답변 생성
         Answer answer = Answer.builder()
-                .questionId(questionId)
+                .question(question)
                 .userId(userId)
                 .answerContent(dto.getAnswerContent())
                 .answerState(dto.getAnswerState())
                 .build();
 
+        // 저장
         Answer saved = answerRepository.save(answer);
 
-        Question question = questionRepository.findById(questionId.intValue())
-                .orElseThrow();
-
+        // 질문의 답변 수 증가
         question.setAnswerCount(question.getAnswerCount() + 1);
         questionRepository.save(question);
 
+        // 응답 반환
         return new AnswerResponseDto(questionId, saved, userId.toString(), userNickname, profileUrl);
     }
 
     //답변 수정
     @Transactional
     public AnswerResponseDto updateAnswer(Long answerId, AnswerRequestDto dto, Long loginUserId) {
-
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(AnswerNotFoundException::new); // 404
 
@@ -62,16 +65,16 @@ public class AnswerService {
                 || dto.getAnswerContent().length() > 1000) {
             throw new InvalidCredentialsException(); // 400
         }
-
         answer.setAnswerContent(dto.getAnswerContent());
         answer.setAnswerState(dto.getAnswerState());
 
         User user = userRepository.findById(answer.getUserId())
                 .orElseThrow(UserNotFoundException::new);
 
+        answer.getQuestion().getQuestionId();
 
         return new AnswerResponseDto(
-                answer.getQuestionId(),
+                answer.getQuestion().getQuestionId().longValue(),
                 answer,
                 String.valueOf(answer.getUserId()), // 또는 answer.getUser().getUserId() → String 변환
                 user.getUserNickname(),
@@ -90,7 +93,7 @@ public class AnswerService {
             throw new UnauthorizedAccessException(); // 403
         }
 
-        Question question = questionRepository.findById(answer.getQuestionId().intValue())
+        Question question = questionRepository.findById(answer.getQuestion().getQuestionId())
                 .orElseThrow(QuestionNotFoundException::new);
 
         int currentCount = question.getAnswerCount();

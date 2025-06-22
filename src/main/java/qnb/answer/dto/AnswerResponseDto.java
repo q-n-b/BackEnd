@@ -38,7 +38,7 @@ public class AnswerResponseDto {
 
     public static AnswerResponseDto from(Answer answer, String userId, String nickname, String profileUrl) {
         return new AnswerResponseDto(
-                answer.getQuestionId(),
+                answer.getQuestion().getQuestionId().longValue(),
                 answer,
                 userId,
                 nickname,

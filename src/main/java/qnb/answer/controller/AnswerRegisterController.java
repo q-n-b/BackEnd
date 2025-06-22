@@ -37,8 +37,6 @@ public class AnswerRegisterController {
             throw new MissingFieldException("독서 상태가 선택되지 않았습니다.");
         }
 
-
-
         AnswerResponseDto response = answerService.registerAnswer(
                 questionId,
                 userDetails.getUserId(),

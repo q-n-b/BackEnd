@@ -11,21 +11,17 @@ import qnb.question.entity.Question;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long answerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_id", nullable = false)
-    private Question question;
-
     @Column(name = "user_id")
     private Long userId;  // 아무 어노테이션도 붙이지 마
 
-    @Column(name = "question_id", insertable = false, updatable = false)
-    private Long questionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String answerContent;
@@ -38,8 +34,16 @@ public class Answer {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
+   /* @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }*/
+
+    @Builder
+    public Answer(Question question, Long userId, String answerContent, String answerState) {
+        this.question = question;
+        this.userId = userId;
+        this.answerContent = answerContent;
+        this.answerState = answerState;
     }
 }
