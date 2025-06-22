@@ -27,21 +27,21 @@ public class UserPreference {
             joinColumns = @JoinColumn(name = "user_preference_id")
     )
     @Column(name = "preferred_genre")
-    private List<Integer> preferredGenres;
+    private List<String> preferredGenres;
 
     @ElementCollection
     @CollectionTable(
             name = "user_preference_keywords",
             joinColumns = @JoinColumn(name = "user_preference_id")
     )
-    @Column(name = "keyword")
+    @Column(name = "preferred_keyword")
     private List<String> preferredKeywords;
 
     @ElementCollection
     @CollectionTable(
-            name = "user_preference_book_ids",
+            name = "user_preference_book_id",
             joinColumns = @JoinColumn(name = "user_preference_id")
     )
-    @Column(name = "book_id")
+    @Column(name = "preferred_book_id")
     private List<Integer> preferredBookId;
 }

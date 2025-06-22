@@ -15,9 +15,9 @@ public class UserPreferenceRequestDto {
 
     @NotNull
     @Size(min = 1)
-    private List<Integer> preferredGenres; //선호장르,복수선택
+    private List<String> preferredGenres; //선호장르,복수선택
 
     private List<String> preferredKeywords;//키워드, 복수선택
 
-    private List<Integer> bookId; //좋았던 책, 복수선택
+    private List<Integer> preferredBookId; //좋았던 책, 복수선택
 }

@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/questions/recent").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+
                         //보호 경로
                         .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
                         .requestMatchers("/api/users/preferences").authenticated()

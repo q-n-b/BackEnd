@@ -19,7 +19,6 @@ public class UserPreferenceService {
 
     @Transactional
     public void savePreference(Long userId, UserPreferenceRequestDto dto) {
-
         // 사용자 조회 및 없을 경우 예외 처리
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -29,19 +28,26 @@ public class UserPreferenceService {
             throw new AccessDeniedException("이미 취향조사를 완료한 사용자입니다.");
         }
 
+        // 취향 정보 저장
         UserPreference preference = new UserPreference();
         preference.setUser(user);
         preference.setReadingAmount(dto.getReadingAmount());
         preference.setImportantFactor(dto.getImportantFactor());
         preference.setPreferredGenres(dto.getPreferredGenres());
         preference.setPreferredKeywords(dto.getPreferredKeywords());
-        preference.setPreferredBookId(dto.getBookId());
+        preference.setPreferredBookId(dto.getPreferredBookId());
 
-        // ✅ 1. 취향 정보 저장
-        preferenceRepository.save(preference);
+        if ((dto.getPreferredGenres() != null && !dto.getPreferredGenres().isEmpty()) ||
+                (dto.getPreferredKeywords() != null && !dto.getPreferredKeywords().isEmpty()) ||
+                (dto.getPreferredBookId() != null && !dto.getPreferredBookId().isEmpty())){
 
-        // ✅ 2. 오류 없이 저장된 경우에만 true로 업데이트
-        user.setHasReadingTaste(true);
-        userRepository.save(user);
+            // 데이터가 하나라도 제대로 들어왔을 때만 true 설정
+            preferenceRepository.save(preference);
+            user.setHasReadingTaste(true);
+            userRepository.save(user);
+        } else {
+            throw new IllegalArgumentException("유효한 취향 정보가 없습니다.");
+        }
+
     }
 }

@@ -44,11 +44,9 @@ public class User {
     @Column(nullable = false)
     private String phoneNumber;
 
-    private String readingTaste;
-
     //취향조사 실행 여부
     @Column(name = "has_reading_taste")
-    private boolean hasReadingTaste = false;
+    private Boolean hasReadingTaste = false;
 
     //question과 역방향 관계 추가 -> 사용자별 질문 목록 조회 시 필요
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
