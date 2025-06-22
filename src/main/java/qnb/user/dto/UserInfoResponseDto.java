@@ -30,6 +30,7 @@ public class UserInfoResponseDto {
         this.birthDate = user.getBirthDate();
         this.gender = user.getGender();
         this.phoneNumber = user.getPhoneNumber();
-        this.hasReadingTaste = user.isHasReadingTaste();
+        this.hasReadingTaste = user.getHasReadingTaste();
+
     }
 }

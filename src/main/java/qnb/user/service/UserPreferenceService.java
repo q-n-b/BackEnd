@@ -24,7 +24,7 @@ public class UserPreferenceService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 이미 취향조사를 한 경우 차단
-        if (user.isHasReadingTaste()) {
+        if (user.getHasReadingTaste()) {
             throw new AccessDeniedException("이미 취향조사를 완료한 사용자입니다.");
         }
 
