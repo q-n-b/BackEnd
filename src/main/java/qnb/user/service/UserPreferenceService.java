@@ -1,5 +1,6 @@
 package qnb.user.service;
 
+import org.springframework.security.access.AccessDeniedException;
 import qnb.user.dto.UserPreferenceRequestDto;
 import qnb.user.entity.User;
 import qnb.user.entity.UserPreference;
@@ -16,9 +17,18 @@ public class UserPreferenceService {
     private final UserPreferenceRepository preferenceRepository;
 
     public void savePreference(Long userId, UserPreferenceRequestDto dto) {
+
+        // 사용자 조회 및 없을 경우 예외 처리
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-//DB에 조회하고 없으면 예외 던져서 에러 처리함
+
+        // 이미 취향조사를 한 경우 차단
+        if (user.isHasReadingTaste()) {
+            throw new AccessDeniedException("이미 취향조사를 완료한 사용자입니다.");
+        }
+
+        // 취향조사 완료 상태로 변경
+        user.setHasReadingTaste(true);
 
         UserPreference preference = new UserPreference();
         preference.setUser(user);
@@ -26,8 +36,10 @@ public class UserPreferenceService {
         preference.setImportantFactor(dto.getImportantFactor());
         preference.setPreferredGenres(dto.getPreferredGenres());
         preference.setPreferredKeywords(dto.getPreferredKeywords());
-        preference.setBookId(dto.getBookId());
+        preference.setPreferredBookId(dto.getBookId());
 
-        preferenceRepository.save(preference); //모든 값이 설정된 객체를 DB에 저장
+        // 사용자, 취향 정보 저장
+        userRepository.save(user);
+        preferenceRepository.save(preference);
     }
 }

@@ -29,7 +29,6 @@ public class UserPreference {
     private List<String> preferredKeywords;
 
     @ElementCollection
-    @CollectionTable(name = "user_preference_book_id")
-    private List<Integer> bookId; // bookId로 저장
+    private List<Integer> preferredBookId; // bookId로 저장
 }
 

@@ -64,11 +64,11 @@ public class BookService {
         );
 
         //호출할 ML 서버의 추천 API URL
-        String mlUrl = "http://<ML_SERVER_IP>:<PORT>/recommend/one";
+        String mlUrl = "http://16.176.183.78:8080/api/books?type=recommendations&limit=1&userId=" + userId;
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<RecommendationResponseDto> response = restTemplate.postForEntity(
-                mlUrl, requestDto, RecommendationResponseDto.class
+        ResponseEntity<RecommendationResponseDto> response = restTemplate.getForEntity(
+                mlUrl, RecommendationResponseDto.class
         );
 
         // 추천받은 Book 조회
