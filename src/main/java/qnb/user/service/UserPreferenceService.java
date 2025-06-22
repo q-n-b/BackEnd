@@ -1,5 +1,6 @@
 package qnb.user.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import qnb.user.dto.UserPreferenceRequestDto;
 import qnb.user.entity.User;
@@ -16,6 +17,7 @@ public class UserPreferenceService {
     private final UserRepository userRepository;
     private final UserPreferenceRepository preferenceRepository;
 
+    @Transactional
     public void savePreference(Long userId, UserPreferenceRequestDto dto) {
 
         // 사용자 조회 및 없을 경우 예외 처리
