@@ -7,15 +7,14 @@ import java.util.List;
 
 @Entity
 @Data
-
 public class UserPreference {
 
-    @Id //이 필드가 기본키임을 의미
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //자동으로 값 증가
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne //1:1관계 의미
-    @JoinColumn(name = "user_id") //User 테이블의 user_id 참조
+    @OneToOne
+    @JoinColumn(name = "user_id")
     private User user;
 
     private Integer readingAmount;
@@ -23,12 +22,26 @@ public class UserPreference {
     private Integer importantFactor;
 
     @ElementCollection
+    @CollectionTable(
+            name = "user_preference_genres",
+            joinColumns = @JoinColumn(name = "user_preference_id")
+    )
+    @Column(name = "preferred_genre")
     private List<Integer> preferredGenres;
 
     @ElementCollection
+    @CollectionTable(
+            name = "user_preference_keywords",
+            joinColumns = @JoinColumn(name = "user_preference_id")
+    )
+    @Column(name = "keyword")
     private List<String> preferredKeywords;
 
     @ElementCollection
-    private List<Integer> preferredBookId; // bookId로 저장
+    @CollectionTable(
+            name = "user_preference_book_ids",
+            joinColumns = @JoinColumn(name = "user_preference_id")
+    )
+    @Column(name = "book_id")
+    private List<Integer> preferredBookId;
 }
-
