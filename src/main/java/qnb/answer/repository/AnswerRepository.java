@@ -22,18 +22,12 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     List<Object[]> countAnswersByQuestionIds(@Param("questionIds") List<Integer> questionIds);
 
     //키워드로 답변 검색(요약 버전)
-    @Query(value = "SELECT a FROM Answer a " +
-            "JOIN a.question q " +
-            "JOIN q.book b " +
-            "WHERE a.answerContent LIKE %:keyword% OR b.title LIKE %:keyword%")
+    @Query(value = "SELECT a FROM Answer a WHERE LOWER(a.answerContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Answer> findAnswersForSummary(@Param("keyword") String keyword);
 
     //키워드로 답변 검색 (full 버전)
-    @Query("SELECT a FROM Answer a " +
-            "WHERE a.answerContent LIKE %:keyword% " +
-            "OR a.question.questionContent LIKE %:keyword% " +
-            "OR a.question.book.title LIKE %:keyword%")
-    Page<Answer> searchAnswers(@Param("keyword") String keyword, Pageable pageable);
+    @Query("SELECT a FROM Answer a WHERE LOWER(a.answerContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Answer> searchAnswers(@Param("keyword") String keyword, Pageable pageable);g
 
 
 }
