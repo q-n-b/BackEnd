@@ -27,7 +27,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     //키워드로 답변 검색 (full 버전)
     @Query("SELECT a FROM Answer a WHERE LOWER(a.answerContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    Page<Answer> searchAnswers(@Param("keyword") String keyword, Pageable pageable);g
+    Page<Answer> searchAnswers(@Param("keyword") String keyword, Pageable pageable);
 
 
 }
