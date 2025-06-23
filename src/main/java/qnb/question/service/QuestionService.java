@@ -120,7 +120,8 @@ public class QuestionService {
                 Sort.by(Sort.Direction.DESC, "createdAt") //최신순 정렬
         );
 
-        Page<Question> questionPage = questionRepository.findAll(pageable);
+        Page<Question> questionPage = questionRepository.findAllWithUser(pageable);
+
 
         //결과가 비었을 경우 처리
         if (questionPage.isEmpty()) {
