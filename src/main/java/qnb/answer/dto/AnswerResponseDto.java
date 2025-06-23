@@ -37,12 +37,18 @@ public class AnswerResponseDto {
     }
 
     public static AnswerResponseDto from(Answer answer, String userId, String nickname, String profileUrl) {
+        Long questionId = null;
+        if (answer.getQuestion() != null && answer.getQuestion().getQuestionId() != null) {
+            questionId = answer.getQuestion().getQuestionId().longValue();
+        }
+
         return new AnswerResponseDto(
-                answer.getQuestion().getQuestionId().longValue(),
+                questionId,
                 answer,
-                userId,
-                nickname,
-                profileUrl
+                userId != null ? userId : "unknown",
+                nickname != null ? nickname : "알 수 없음",
+                profileUrl != null ? profileUrl : ""
         );
     }
+
 }

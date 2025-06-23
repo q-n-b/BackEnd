@@ -159,8 +159,11 @@ public class QuestionService {
         // 답변 정렬 기준 처리
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
         Comparator<Answer> comparator = "popular".equals(sort)
-                ? Comparator.comparing(Answer::getLikeCount).reversed()
-                : Comparator.comparing(Answer::getCreatedAt);
+                ? Comparator.comparing(Answer::getLikeCount,
+                Comparator.nullsLast(Integer::compareTo)).reversed()
+                : Comparator.comparing(Answer::getCreatedAt,
+                Comparator.nullsLast(LocalDateTime::compareTo));
+
 
         // 질문 정보 DTO로 변환 (답변 수 포함)
         QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
@@ -184,7 +187,7 @@ public class QuestionService {
 
             // 답변 리스트 DTO로 변환
             List<AnswerResponseDto> answerDtos = entry.getValue().stream()
-                    .sorted(Comparator.comparing(Answer::getCreatedAt))  // 다시 정렬
+                    .sorted(Comparator.comparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)))
                     .map(answer -> AnswerResponseDto.from(
                             answer,
                             user.getUserId().toString(),
