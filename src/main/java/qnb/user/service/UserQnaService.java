@@ -37,6 +37,13 @@ public class UserQnaService {
         if (type == null || type.equals("ANSWER")) {
             List<Answer> myAnswers = answerRepository.findByUserId(userId);
 
+            // 상태 우선순위 정의
+            Map<String, Integer> stateOrder = Map.of(
+                    "BEFORE", 0,
+                    "READING", 1,
+                    "AFTER", 2
+            );
+
             for (Answer a : myAnswers) {
                 if (a.getQuestion() == null || a.getQuestion().getQuestionId() == null) {
                     continue;
@@ -48,28 +55,22 @@ public class UserQnaService {
                     Question q = questionRepository.findById(questionId.intValue())
                             .orElseThrow(QuestionNotFoundException::new);
 
-                    // 내가 쓴 답변만 추출
+                    // 내가 쓴 답변만 추출 + 정렬
                     List<Answer> filtered = myAnswers.stream()
-                            .filter(ans -> ans.getQuestion() != null
-                                    && ans.getQuestion().getQuestionId().longValue() == questionId)
-                            .sorted(Comparator
-                                    .comparingInt((Answer ans) -> {
-                                        return switch (ans.getAnswerState()) {
-                                            case "BEFORE" -> 0;
-                                            case "READING" -> 1;
-                                            case "AFTER" -> 2;
-                                            default -> 3;
-                                        };
-                                    })
-                                    .thenComparing(Answer::getCreatedAt, Comparator.reverseOrder())
+                            .filter(ans -> ans.getQuestion() != null &&
+                                    ans.getQuestion().getQuestionId().longValue() == questionId)
+                            .sorted(
+                                    Comparator.comparing(
+                                            (Answer ans) -> stateOrder.getOrDefault(ans.getAnswerState(), 99)
+                                    ).thenComparing(Answer::getCreatedAt, Comparator.reverseOrder())
                             )
                             .toList();
-
 
                     resultMap.put(questionId, UserQnaResponseDto.fromAnswer(q, filtered));
                 }
             }
         }
+
 
         if (resultMap.isEmpty()) {
             throw new QnaNotFoundException("작성한 질문 또는 답변이 없습니다.");
