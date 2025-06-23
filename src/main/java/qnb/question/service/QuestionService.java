@@ -151,31 +151,33 @@ public class QuestionService {
     }
 
 
-    // 질문 상세 조회 메소드
     public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort) {
         Question question = questionRepository.findById(Math.toIntExact(questionId))
                 .orElseThrow(QuestionNotFoundException::new);
 
-        // 답변 정렬 기준 처리 (answerState + createdAt 기준)
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
 
-        // 상태 우선순위 정의
+        // 상태 우선순위 정의 (대소문자 일치)
         Map<String, Integer> stateOrder = Map.of(
                 "BEFORE", 0,
                 "READING", 1,
                 "AFTER", 2
         );
 
+        // 정렬 기준: 인기순 or 상태 + 최신순
         Comparator<Answer> comparator = "popular".equals(sort)
                 ? Comparator.comparing(Answer::getLikeCount, Comparator.nullsLast(Integer::compareTo)).reversed()
                 : Comparator
-                .comparing((Answer a) -> stateOrder.getOrDefault(a.getAnswerState(), Integer.MAX_VALUE))
+                .comparing((Answer a) -> {
+                    String state = a.getAnswerState();
+                    return state != null ? stateOrder.getOrDefault(state.toUpperCase(), 99) : 99;
+                })
                 .thenComparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo));
 
-        // 질문 정보 DTO로 변환 (답변 수 포함)
+        // 질문 정보 DTO로 변환
         QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
 
-        // 사용자 기준으로 묶기
+        // 사용자 기준으로 묶기 (정렬 적용)
         Map<Long, List<Answer>> grouped = answers.stream()
                 .sorted(comparator)
                 .collect(Collectors.groupingBy(
@@ -191,18 +193,21 @@ public class QuestionService {
             User user = userRepository.findById(userId)
                     .orElseThrow(UserNotFoundException::new);
 
-            // 답변 리스트를 다시 상태 + 날짜 순서로 정렬 (개별 유저 단위)
             List<AnswerResponseDto> answerDtos = entry.getValue().stream()
                     .sorted(
                             Comparator
-                                    .comparing((Answer a) -> stateOrder.getOrDefault(a.getAnswerState(), Integer.MAX_VALUE))
+                                    .comparing((Answer a) -> {
+                                        String state = a.getAnswerState();
+                                        return state != null ? stateOrder.getOrDefault(state.toUpperCase(), 99) : 99;
+                                    })
                                     .thenComparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo))
                     )
                     .map(answer -> AnswerResponseDto.from(
                             answer,
                             user.getUserId().toString(),
-                            user.getUserNickname(),
-                            user.getProfileUrl()))
+                            user.getUserNickname() != null ? user.getUserNickname() : "알 수 없음",
+                            user.getProfileUrl() != null ? user.getProfileUrl() : ""
+                    ))
                     .collect(Collectors.toList());
 
             answersByUser.add(new AnswersByUserDto(user, answerDtos));
