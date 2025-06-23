@@ -51,9 +51,13 @@ public class UserQnaService {
                     Question q = questionRepository.findById(questionId.intValue())
                             .orElseThrow(QuestionNotFoundException::new);
 
-                    List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
-                    resultMap.put(questionId, UserQnaResponseDto.fromAnswer(q, answers));
+                    // 내가 쓴 답변만 추출
+                    List<Answer> filtered = myAnswers.stream()
+                            .filter(ans -> ans.getQuestion() != null
+                                    && ans.getQuestion().getQuestionId().longValue() == questionId)
+                            .toList();
 
+                    resultMap.put(questionId, UserQnaResponseDto.fromAnswer(q, filtered));
                 }
             }
         }
@@ -61,7 +65,7 @@ public class UserQnaService {
         if (resultMap.isEmpty()) {
             throw new QnaNotFoundException("작성한 질문 또는 답변이 없습니다.");
         }
-        
+
         return new ArrayList<>(resultMap.values());
     }
 }
