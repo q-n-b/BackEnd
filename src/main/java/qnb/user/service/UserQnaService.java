@@ -61,7 +61,8 @@ public class UserQnaService {
                                             default -> 3;
                                         };
                                     })
-                                    .thenComparing(Answer::getCreatedAt))
+                                    .thenComparing(Answer::getCreatedAt, Comparator.reverseOrder())
+                            )
                             .toList();
 
 

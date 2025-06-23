@@ -157,7 +157,7 @@ public class QuestionService {
 
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
 
-        // 상태 우선순위 정의 (대소문자 일치)
+        // 상태 우선순위 정의
         Map<String, Integer> stateOrder = Map.of(
                 "BEFORE", 0,
                 "READING", 1,
