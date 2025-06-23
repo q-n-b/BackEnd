@@ -108,7 +108,7 @@ public class SearchService {
         int safeSize = Math.min(Math.max(size, 1), 50); //한 페이지당 항목 개수 (1 ~ 50 사이 제한)
 
         Pageable pageable = PageRequest.of(
-                safePage-1, //스프링은 0부터 시작하니까
+                safePage - 1, //스프링은 0부터 시작하니까
                 safeSize,
                 Sort.unsorted());
 
@@ -195,50 +195,109 @@ public class SearchService {
         }
 
         //3. 답변 검색 결과
-        else {
+        else if (type.equals("ANSWER")) {
             Page<Answer> answers;
 
             if (keyword == null || keyword.trim().isEmpty()) {
-                answers = answerRepository.findAll(pageable); // 공백이면 전체 조회
-            } else {
-                answers = answerRepository.searchAnswers(keyword, pageable); // 키워드 있으면 검색
+                // 🔹 키워드 없을 때: 전체 조회
+                answers = answerRepository.findAll(pageable);
+
+                List<AnswerSearchOneDto> resultList = answers.getContent().stream()
+                        .map(a -> {
+                            User user = userRepository.findById(a.getUserId())
+                                    .orElseThrow(UserNotFoundException::new);
+
+                            QuestionSimpleDto questionDto = null;
+                            BookSimpleDto bookDto = null;
+
+                            if (a.getQuestion() != null) {
+                                questionDto = new QuestionSimpleDto(
+                                        a.getQuestion().getQuestionId().longValue(),
+                                        a.getQuestion().getQuestionContent()
+                                );
+
+                                if (a.getQuestion().getBook() != null) {
+                                    bookDto = new BookSimpleDto(
+                                            a.getQuestion().getBook().getBookId(),
+                                            a.getQuestion().getBook().getTitle(),
+                                            a.getQuestion().getBook().getImageUrl(),
+                                            a.getQuestion().getBook().getAuthor(),
+                                            a.getQuestion().getBook().getPublisher(),
+                                            a.getQuestion().getBook().getPublishedYear()
+                                    );
+                                }
+                            }
+
+                            return new AnswerSearchOneDto(
+                                    a.getAnswerId(),
+                                    a.getAnswerContent(),
+                                    questionDto,
+                                    bookDto,
+                                    a.getLikeCount(),
+                                    user.getUserNickname(),
+                                    user.getProfileUrl(),
+                                    a.getAnswerState()
+                            );
+                        })
+                        .toList();
+
+                return new AnswerSearchResponseDto(
+                        resultList,
+                        new PageInfoDto(
+                                safePage,
+                                answers.getTotalPages(),
+                                (int) answers.getTotalElements()
+                        )
+                );
             }
 
-            return new AnswerSearchResponseDto(
-                    answers.getContent().stream()
-                            .filter(a -> a.getQuestion() != null && a.getQuestion().getBook() != null)
-                            .map(a -> {
-                                User user = userRepository.findById(a.getUserId())
-                                        .orElseThrow(UserNotFoundException::new);
 
-                                return new AnswerSearchOneDto(
-                                        a.getAnswerId(),
-                                        a.getAnswerContent(),
-                                        new QuestionSimpleDto(
-                                                a.getQuestion().getQuestionId().longValue(),
-                                                a.getQuestion().getQuestionContent()
-                                        ),
-                                        new BookSimpleDto(
-                                                a.getQuestion().getBook().getBookId(),
-                                                a.getQuestion().getBook().getTitle(),
-                                                a.getQuestion().getBook().getImageUrl(),
-                                                a.getQuestion().getBook().getAuthor(),
-                                                a.getQuestion().getBook().getPublisher(),
-                                                a.getQuestion().getBook().getPublishedYear()
-                                        ),
-                                        a.getLikeCount(),
-                                        user.getUserNickname(),
-                                        user.getProfileUrl(),
-                                        a.getAnswerState()
-                                );
-                            })
-                            .toList(),
-                    new PageInfoDto(
-                            safePage,
-                            answers.getTotalPages(),
-                            (int) answers.getTotalElements()
-                    )
-            );
+            // 🔹 키워드 있을 때: 기존 searchAnswers 쿼리 사용
+            else {
+                answers = answerRepository.searchAnswers(keyword, pageable);
+
+                List<AnswerSearchOneDto> resultList = answers.getContent().stream()
+                        .filter(a -> a.getQuestion() != null && a.getQuestion().getBook() != null)
+                        .map(a -> {
+                            User user = userRepository.findById(a.getUserId())
+                                    .orElseThrow(UserNotFoundException::new);
+
+                            return new AnswerSearchOneDto(
+                                    a.getAnswerId(),
+                                    a.getAnswerContent(),
+                                    new QuestionSimpleDto(
+                                            a.getQuestion().getQuestionId().longValue(),
+                                            a.getQuestion().getQuestionContent()
+                                    ),
+                                    new BookSimpleDto(
+                                            a.getQuestion().getBook().getBookId(),
+                                            a.getQuestion().getBook().getTitle(),
+                                            a.getQuestion().getBook().getImageUrl(),
+                                            a.getQuestion().getBook().getAuthor(),
+                                            a.getQuestion().getBook().getPublisher(),
+                                            a.getQuestion().getBook().getPublishedYear()
+                                    ),
+                                    a.getLikeCount(),
+                                    user.getUserNickname(),
+                                    user.getProfileUrl(),
+                                    a.getAnswerState()
+                            );
+                        })
+                        .toList();
+
+                return new AnswerSearchResponseDto(
+                        resultList,
+                        new PageInfoDto(
+                                safePage,
+                                answers.getTotalPages(),
+                                (int) answers.getTotalElements()
+                        )
+                );
+            }
+        }
+        else {
+            throw new IllegalArgumentException("지원하지 않는 검색 타입입니다: " + type);
         }
     }
+
 }
