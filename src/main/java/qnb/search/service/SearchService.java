@@ -79,6 +79,10 @@ public class SearchService {
         List<Answer> answers = answerRepository.findAnswersForSummary(keyword);
 
         List<AnswerPreviewDto> previewList = answers.stream()
+                .filter(a -> a.getQuestion() != null &&
+                        a.getQuestion().getBook() != null &&
+                        a.getQuestion().getQuestionId() != null &&
+                        a.getQuestion().getBook().getBookId() != null)
                 .limit(5)
                 .map(a -> new AnswerPreviewDto(
                         a.getAnswerId(),
