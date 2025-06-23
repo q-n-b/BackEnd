@@ -200,6 +200,7 @@ public class SearchService {
 
             return new AnswerSearchResponseDto(
                     answers.getContent().stream()
+                            .filter(a -> a.getQuestion() != null && a.getQuestion().getBook() != null)
                             .map(a -> {
                                 // 🔍 userId로 사용자 정보 조회 (예외 던질 때 UserNotFoundException 사용)
                                 User user = userRepository.findById(a.getUserId())
