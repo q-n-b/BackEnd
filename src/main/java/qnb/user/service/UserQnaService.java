@@ -41,13 +41,18 @@ public class UserQnaService {
             List<Answer> myAnswers = answerRepository.findByUserId(userId);
 
             for (Answer a : myAnswers) {
-                Integer questionId = a.getQuestion().getQuestionId();
+                if (a.getQuestion() == null || a.getQuestion().getQuestionId() == null) {
+                    continue;
+                }
+
+                Long questionId = a.getQuestion().getQuestionId().longValue();
+
                 if (!resultMap.containsKey(questionId)) {
-                    Question q = questionRepository.findById(questionId)
+                    Question q = questionRepository.findById(questionId.intValue())
                             .orElseThrow(QuestionNotFoundException::new);
 
-                    List<Answer> answers = answerRepository.findByQuestion_QuestionId(Long.valueOf(questionId));
-                    resultMap.put(Long.valueOf(questionId), UserQnaResponseDto.fromAnswer(q, answers));
+                    List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
+                    resultMap.put(questionId, UserQnaResponseDto.fromAnswer(q, answers));
 
                 }
             }
@@ -56,8 +61,7 @@ public class UserQnaService {
         if (resultMap.isEmpty()) {
             throw new QnaNotFoundException("작성한 질문 또는 답변이 없습니다.");
         }
-
-
+        
         return new ArrayList<>(resultMap.values());
     }
 }
