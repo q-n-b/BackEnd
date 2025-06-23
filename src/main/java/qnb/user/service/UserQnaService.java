@@ -10,10 +10,7 @@ import qnb.question.repository.QuestionRepository;
 import qnb.user.dto.UserQnaResponseDto;
 import qnb.common.exception.QnaNotFoundException;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +52,18 @@ public class UserQnaService {
                     List<Answer> filtered = myAnswers.stream()
                             .filter(ans -> ans.getQuestion() != null
                                     && ans.getQuestion().getQuestionId().longValue() == questionId)
+                            .sorted(Comparator
+                                    .comparingInt((Answer ans) -> {
+                                        return switch (ans.getAnswerState()) {
+                                            case "BEFORE" -> 0;
+                                            case "READING" -> 1;
+                                            case "AFTER" -> 2;
+                                            default -> 3;
+                                        };
+                                    })
+                                    .thenComparing(Answer::getCreatedAt))
                             .toList();
+
 
                     resultMap.put(questionId, UserQnaResponseDto.fromAnswer(q, filtered));
                 }

@@ -15,10 +15,6 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     List<Question> findByUser_UserId(Long userId);
 
-    @Query(value = "SELECT q FROM Question q JOIN FETCH q.user",
-            countQuery = "SELECT COUNT(q) FROM Question q")
-    Page<Question> findAllWithUser(Pageable pageable);
-
     // 최신순 정렬 + GPT 우선
     //userNickname이 "GPT"인 질문은 CASE WHEN에서 0 → 가장 우선순위
     @Query("""
