@@ -57,7 +57,7 @@ public class BookService {
 
         User user = userPreference.getUser();
 
-        // ✅ ML 요청 및 저장 (현재는 주석 처리)
+        // ML 요청 및 저장 (현재는 주석 처리)
     /*
     RecommendationRequestDto requestDto = new RecommendationRequestDto(
             userId,

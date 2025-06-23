@@ -67,7 +67,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://3.27.122.124:3000",
-                "http://192.168.0.109:3000"
+                "http://192.168.0.109:3000",
+                "http://192.168.0.17:3000"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

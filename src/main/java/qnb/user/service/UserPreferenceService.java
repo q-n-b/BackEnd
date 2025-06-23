@@ -22,9 +22,6 @@ public class UserPreferenceService {
         // 사용자 조회 및 없을 경우 예외 처리
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        System.out.println("🟡 userId = " + userId);
-        System.out.println("🟢 DB에서 조회한 user.hasReadingTaste = " + user.getHasReadingTaste());
-
 
         // 이미 취향조사를 한 경우 차단
         if (user.getHasReadingTaste()) {

@@ -36,11 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
             Long userId = jwtTokenProvider.getUserIdFromToken(token);
-            System.out.println("✅ token OK, userId = " + userId);
 
             UserDetailsImpl userDetails = userDetailsService.loadUserById(userId);
-            System.out.println("✅ userDetails loaded: " + userDetails.getUsername());
-
 
             // SecurityContext에 인증 정보 등록
             UsernamePasswordAuthenticationToken authentication =
