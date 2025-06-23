@@ -151,19 +151,26 @@ public class QuestionService {
     }
 
 
-    //질문 상세 조회 메소드
+    // 질문 상세 조회 메소드
     public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort) {
         Question question = questionRepository.findById(Math.toIntExact(questionId))
                 .orElseThrow(QuestionNotFoundException::new);
 
-        // 답변 정렬 기준 처리
+        // 답변 정렬 기준 처리 (answerState + createdAt 기준)
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
-        Comparator<Answer> comparator = "popular".equals(sort)
-                ? Comparator.comparing(Answer::getLikeCount,
-                Comparator.nullsLast(Integer::compareTo)).reversed()
-                : Comparator.comparing(Answer::getCreatedAt,
-                Comparator.nullsLast(LocalDateTime::compareTo));
 
+        // 상태 우선순위 정의
+        Map<String, Integer> stateOrder = Map.of(
+                "BEFORE", 0,
+                "READING", 1,
+                "AFTER", 2
+        );
+
+        Comparator<Answer> comparator = "popular".equals(sort)
+                ? Comparator.comparing(Answer::getLikeCount, Comparator.nullsLast(Integer::compareTo)).reversed()
+                : Comparator
+                .comparing((Answer a) -> stateOrder.getOrDefault(a.getAnswerState(), Integer.MAX_VALUE))
+                .thenComparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo));
 
         // 질문 정보 DTO로 변환 (답변 수 포함)
         QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
@@ -173,7 +180,7 @@ public class QuestionService {
                 .sorted(comparator)
                 .collect(Collectors.groupingBy(
                         Answer::getUserId,
-                        LinkedHashMap::new,  // ← 입력 순서 유지
+                        LinkedHashMap::new,
                         Collectors.toList()
                 ));
 
@@ -181,13 +188,16 @@ public class QuestionService {
         for (Map.Entry<Long, List<Answer>> entry : grouped.entrySet()) {
             Long userId = entry.getKey();
 
-            // userId로 사용자 정보 조회
             User user = userRepository.findById(userId)
                     .orElseThrow(UserNotFoundException::new);
 
-            // 답변 리스트 DTO로 변환
+            // 답변 리스트를 다시 상태 + 날짜 순서로 정렬 (개별 유저 단위)
             List<AnswerResponseDto> answerDtos = entry.getValue().stream()
-                    .sorted(Comparator.comparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)))
+                    .sorted(
+                            Comparator
+                                    .comparing((Answer a) -> stateOrder.getOrDefault(a.getAnswerState(), Integer.MAX_VALUE))
+                                    .thenComparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo))
+                    )
                     .map(answer -> AnswerResponseDto.from(
                             answer,
                             user.getUserId().toString(),
@@ -200,6 +210,7 @@ public class QuestionService {
 
         return new QuestionDetailResponseDto(questionDto, answersByUser);
     }
+
 
 
     /*@Value("${ml.server.url}")
