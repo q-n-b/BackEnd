@@ -12,6 +12,7 @@ import qnb.book.dto.BookSimpleDto;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
 import qnb.common.dto.PageInfoDto;
+import qnb.common.exception.UserNotFoundException;
 import qnb.question.dto.QuestionPageResponseDto;
 import qnb.question.dto.QuestionSimpleDto;
 import qnb.question.entity.Question;
@@ -25,6 +26,8 @@ import qnb.search.dto.summary.Preview.AnswerPreviewDto;
 import qnb.search.dto.summary.Preview.BookPreviewDto;
 import qnb.search.dto.summary.Preview.QuestionPreviewDto;
 import qnb.search.dto.summary.QuestionSummaryDto;
+import qnb.user.entity.User;
+import qnb.user.repository.UserRepository;
 
 import java.util.List;
 
@@ -36,6 +39,7 @@ public class SearchService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final QuestionService questionService;
+    private final UserRepository userRepository;
 
     //요약 버전 생성하는 메소드
     public BookSummaryDto createBookSummary(String keyword) {
@@ -138,11 +142,16 @@ public class SearchService {
                                 new BookSimpleDto(  // BookResponseDto → BookSimpleDto 변환
                                         q.getBook().getBookId(),
                                         q.getBook().getTitle(),
-                                        q.getBook().getImageUrl()
+                                        q.getBook().getImageUrl(),
+                                        q.getBook().getAuthor(),
+                                        q.getBook().getPublisher(),
+                                        q.getBook().getPublishedYear()
                                 ),
                                 q.getAnswerCount(),
                                 q.getLikeCount(),
-                                q.getScrapCount()
+                                q.getScrapCount(),
+                                q.getUserNickname(),
+                                q.getProfileUrl()
                         ))
                         .toList();
 
@@ -164,11 +173,17 @@ public class SearchService {
                                         new BookSimpleDto(
                                                 q.getBook().getBookId(),
                                                 q.getBook().getTitle(),
-                                                q.getBook().getImageUrl()
+                                                q.getBook().getImageUrl(),
+                                                q.getBook().getAuthor(),
+                                                q.getBook().getPublisher(),
+                                                q.getBook().getPublishedYear()
+
                                         ),
                                         q.getAnswerCount(),
                                         q.getLikeCount(),
-                                        q.getScrapCount()
+                                        q.getScrapCount(),
+                                        q.getUser().getUserNickname(),
+                                        q.getUser().getProfileUrl()
                                 ))
                                 .toList(),
                         new PageInfoDto(
@@ -185,24 +200,38 @@ public class SearchService {
 
             return new AnswerSearchResponseDto(
                     answers.getContent().stream()
-                            .map(a -> new AnswerSearchOneDto(
-                                    a.getAnswerId(),
-                                    a.getAnswerContent(),
-                                    new QuestionSimpleDto(
-                                            a.getQuestion().getQuestionId().longValue(),
-                                            a.getQuestion().getQuestionContent()
-                                    ),
-                                    new BookSimpleDto(
-                                            a.getQuestion().getBook().getBookId(),
-                                            a.getQuestion().getBook().getTitle(),
-                                            a.getQuestion().getBook().getImageUrl()
-                                    ),
-                                    a.getLikeCount()
-                            ))
+                            .map(a -> {
+                                // 🔍 userId로 사용자 정보 조회 (예외 던질 때 UserNotFoundException 사용)
+                                User user = userRepository.findById(a.getUserId())
+                                        .orElseThrow(UserNotFoundException::new);
+
+                                return new AnswerSearchOneDto(
+                                        a.getAnswerId(),
+                                        a.getAnswerContent(),
+                                        new QuestionSimpleDto(
+                                                a.getQuestion().getQuestionId().longValue(),
+                                                a.getQuestion().getQuestionContent()
+                                        ),
+                                        new BookSimpleDto(
+                                                a.getQuestion().getBook().getBookId(),
+                                                a.getQuestion().getBook().getTitle(),
+                                                a.getQuestion().getBook().getImageUrl(),
+                                                a.getQuestion().getBook().getAuthor(),
+                                                a.getQuestion().getBook().getPublisher(),
+                                                a.getQuestion().getBook().getPublishedYear()
+                                        ),
+                                        a.getLikeCount(),
+                                        user.getUserNickname(),
+                                        user.getProfileUrl(),
+                                        a.getAnswerState()
+                                );
+                            })
                             .toList(),
-                    new PageInfoDto(safePage,
+                    new PageInfoDto(
+                            safePage,
                             answers.getTotalPages(),
-                            (int) answers.getTotalElements())
+                            (int) answers.getTotalElements()
+                    )
             );
         }
     }

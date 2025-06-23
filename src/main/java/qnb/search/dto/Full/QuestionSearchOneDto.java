@@ -16,4 +16,7 @@ public class QuestionSearchOneDto {
     private int answerCount;
     private int likeCount;
     private int scrapCount;
+    private String userNickname;
+    private String profileUrl;
 }
+

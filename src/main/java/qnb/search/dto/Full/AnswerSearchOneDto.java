@@ -16,4 +16,7 @@ public class AnswerSearchOneDto {
     private QuestionSimpleDto question;
     private BookSimpleDto book;
     private int likeCount;
+    private String userNickname;
+    private String profileUrl;
+    private String answerState;
 }

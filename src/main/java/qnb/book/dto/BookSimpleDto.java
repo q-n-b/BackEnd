@@ -12,4 +12,8 @@ public class BookSimpleDto {
     private Integer bookId;
     private String bookTitle;
     private String imageUrl;
+    private String author;
+    private String publisher;
+    private Integer publishedYear;
+
 }
