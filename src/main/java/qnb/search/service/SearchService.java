@@ -196,13 +196,18 @@ public class SearchService {
 
         //3. 답변 검색 결과
         else {
-            Page<Answer> answers = answerRepository.searchAnswers(keyword, pageable);
+            Page<Answer> answers;
+
+            if (keyword == null || keyword.trim().isEmpty()) {
+                answers = answerRepository.findAll(pageable); // 공백이면 전체 조회
+            } else {
+                answers = answerRepository.searchAnswers(keyword, pageable); // 키워드 있으면 검색
+            }
 
             return new AnswerSearchResponseDto(
                     answers.getContent().stream()
                             .filter(a -> a.getQuestion() != null && a.getQuestion().getBook() != null)
                             .map(a -> {
-                                // 🔍 userId로 사용자 정보 조회 (예외 던질 때 UserNotFoundException 사용)
                                 User user = userRepository.findById(a.getUserId())
                                         .orElseThrow(UserNotFoundException::new);
 
@@ -236,5 +241,4 @@ public class SearchService {
             );
         }
     }
-
 }
