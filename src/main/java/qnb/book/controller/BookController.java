@@ -1,10 +1,12 @@
 package qnb.book.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import qnb.book.service.AladinApiService;
 import qnb.book.service.BookService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import qnb.user.security.UserDetailsImpl;
 
 @RestController
 @RequestMapping("/api/books")
@@ -48,8 +50,13 @@ public class BookController {
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
             @RequestParam(required = false) Integer limit,
-            @RequestParam(required = false) Long userId
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
+
+        Long userId = userDetails.getUserId(); // 👈 userId 추출
+
+        System.out.println("🔥 userId = " + userId); // 디버깅 로그
+
         return switch (type) {
             case "recommendations" -> {
                 if (limit != null && limit == 1) {

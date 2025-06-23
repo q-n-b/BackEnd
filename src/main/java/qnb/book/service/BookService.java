@@ -51,43 +51,51 @@ public class BookService {
     //userId를 기준으로 추천 도서 1권을 받아오는 서비스 메소드.
     public SingleRecommendedBookResponseDto getSingleRecommendedBook(Long userId) {
 
-        // 사용자 정보 조회
-        UserPreference userPreference = userPreferenceRepository.findById(userId)
+        // ✅ 사용자 선호 정보 조회 (User 객체를 얻기 위함)
+        UserPreference userPreference = userPreferenceRepository.findByUser_UserId(userId)
                 .orElseThrow(UserNotFoundException::new);
+
         User user = userPreference.getUser();
 
-        // ML 요청
-        RecommendationRequestDto requestDto = new RecommendationRequestDto(
-                userId,
-                userPreference.getPreferredGenres(),
-                userPreference.getImportantFactor()
-        );
+        // ✅ ML 요청 및 저장 (현재는 주석 처리)
+    /*
+    RecommendationRequestDto requestDto = new RecommendationRequestDto(
+            userId,
+            userPreference.getPreferredGenres(),
+            userPreference.getImportantFactor()
+    );
 
-        //호출할 ML 서버의 추천 API URL
-        String mlUrl = "http://16.176.183.78:8080/api/books?type=recommendations&limit=1&userId=" + userId;
+    String mlUrl = "http://16.176.183.78:8080/api/books?type=recommendations&limit=1&userId=" + userId;
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<RecommendationResponseDto> response = restTemplate.getForEntity(
-                mlUrl, RecommendationResponseDto.class
-        );
+    RestTemplate restTemplate = new RestTemplate();
+    ResponseEntity<RecommendationResponseDto> response = restTemplate.getForEntity(
+            mlUrl, RecommendationResponseDto.class
+    );
 
-        // 추천받은 Book 조회
-        RecommendationResponseDto data = response.getBody();
-        Book book = bookRepository.findById(data.getBookId().intValue())
-                .orElseThrow(BookNotFoundException::new);
+    RecommendationResponseDto data = response.getBody();
+    Book book = bookRepository.findById(data.getBookId().intValue())
+            .orElseThrow(BookNotFoundException::new);
 
-        // 추천 기록 저장
-        UserRecommendedBook rec = new UserRecommendedBook(
-                user,
-                book,
-                data.getReason(),
-                data.getKeyword()
-        );
-        recommendedBookRepository.save(rec);
+    UserRecommendedBook rec = new UserRecommendedBook(
+            user,
+            book,
+            data.getReason(),
+            data.getKeyword()
+    );
+    recommendedBookRepository.save(rec);
+    */
 
-        // 응답 반환 (추천 책 + 추천 이유)
-        return new SingleRecommendedBookResponseDto(book, data.getReason(), data.getKeyword());
+        // DB에 저장된 추천 도서 중 최근 1개 가져오기
+        UserRecommendedBook rec = recommendedBookRepository.findTopByUser_UserIdOrderByRecommendedAtDesc(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 추천 도서가 존재하지 않습니다."));
+
+        Book book = rec.getBook();
+        String reason = rec.getReason();
+        String keyword = rec.getKeyword();
+
+        return new SingleRecommendedBookResponseDto(book, reason, keyword);
     }
+
 
     // 1. 개인 추천 도서 리스트 조회
     public List<BookResponseDto> getRecommendedBooks(Long userId) {

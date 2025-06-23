@@ -21,5 +21,9 @@ public interface UserRecommendedBookRepository extends JpaRepository<UserRecomme
     List<UserRecommendedBook> findByBookGenre(@Param("genre") String genre);
 
     List<UserRecommendedBook> findAllByUserOrderByRecommendedAtDesc(User user);
+
+    //추천받은 책 중에 가장 최근 추천 받은 책 가져오기
+    Optional<UserRecommendedBook> findTopByUser_UserIdOrderByRecommendedAtDesc(Long userId);
+
 }
 
