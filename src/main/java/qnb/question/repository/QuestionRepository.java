@@ -6,17 +6,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     List<Question> findByUser_UserId(Long userId);
 
-    // 최신순 정렬 + GPT 우선
-    //userNickname이 "GPT"인 질문은 CASE WHEN에서 0 → 가장 우선순위
     @Query("""
     SELECT q FROM Question q
     WHERE q.book.bookId = :bookId
@@ -29,7 +25,6 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             Pageable pageable
     );
 
-    //좋아요순 정렬+ GPT 우선
     @Query("""
     SELECT q FROM Question q
     WHERE q.book.bookId = :bookId
@@ -42,13 +37,9 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             Pageable pageable
     );
 
-    //키워드로 질문 검색 (요약)
     @Query("SELECT q FROM Question q WHERE LOWER(q.questionContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Question> findQuestionsForSummary(@Param("keyword") String keyword);
 
-    //키워드로 질문 검색(full)
     @Query("SELECT q FROM Question q WHERE LOWER(q.questionContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Question> searchQuestions(@Param("keyword") String keyword, Pageable pageable);
-
-
 }

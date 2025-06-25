@@ -42,4 +42,18 @@ public class Question {
     @Column(name = "answer_count", nullable = false)
     private int answerCount = 0;
 
+    public void increaseScrapCount() {
+        this.scrapCount++;
+    }
+
+    public void decreaseScrapCount() {
+        if (this.scrapCount > 0) {
+            this.scrapCount--;
+        }
+    }
+
+    public int getScrapCount() {
+        return this.scrapCount;
+    }
+
 }

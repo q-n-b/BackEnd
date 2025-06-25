@@ -11,4 +11,6 @@ import java.util.List;
 @Repository
 public interface UserBookReadingRepository extends JpaRepository<UserBookReading, Long> {
     List<UserBookReading> findByUser_UserId(Long userId);
+    void deleteByUser_UserIdAndBook_BookId(Long userId, Integer bookId);
+    boolean existsByUser_UserIdAndBook_BookId(Long userId, Integer bookId);
 }

@@ -1,7 +1,7 @@
 package qnb.user.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 import qnb.book.entity.Book;
 
 import java.time.LocalDateTime;
@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Table(name = "user_book_reading")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class UserBookReading {
 
     @Id
@@ -24,5 +27,4 @@ public class UserBookReading {
     private Book book;
 
     private LocalDateTime createdAt;
-    private LocalDateTime startedAt;
 }
