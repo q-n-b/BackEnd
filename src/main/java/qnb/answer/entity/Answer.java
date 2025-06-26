@@ -29,6 +29,7 @@ public class Answer {
     @Column(nullable = false)
     private String answerState; // BEFORE, AFTER
 
+    @Column(name = "like_count", nullable = false)
     private int likeCount = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -41,4 +42,15 @@ public class Answer {
         this.answerContent = answerContent;
         this.answerState = answerState;
     }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
 }

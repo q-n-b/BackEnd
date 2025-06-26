@@ -33,7 +33,9 @@ public class BookScrapService {
 
     @Transactional
     public BookScrapResponseDto toggleScrap(Integer bookId, Long userId, String status) {
-        if (!Set.of("wish", "reading", "read").contains(status)) {
+        status = status.toUpperCase();  // 👈 대문자로 변환
+
+        if (!Set.of("WISH", "READING", "READ").contains(status)) {
             throw new InvalidStatusException();
         }
 
@@ -48,11 +50,11 @@ public class BookScrapService {
         boolean isRead = userBookReadRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
 
         // 동일 상태로 이미 등록되어 있다면 삭제(=토글 해제)
-        if ((status.equals("wish") && isWish) ||
-                (status.equals("reading") && isReading) ||
-                (status.equals("read") && isRead)) {
+        if ((status.equals("WISH") && isWish) ||
+                (status.equals("READING") && isReading) ||
+                (status.equals("READ") && isRead)) {
 
-            deleteScrapStatus(userId, bookId); // 모두 삭제
+            deleteScrapStatus(userId, bookId);
             return BookScrapResponseDto.builder()
                     .bookId(bookId)
                     .scrapStatus(null)
@@ -65,13 +67,13 @@ public class BookScrapService {
 
         // 새로운 상태 등록
         switch (status) {
-            case "wish" -> userBookWishRepository.save(
+            case "WISH" -> userBookWishRepository.save(
                     UserBookWish.builder().user(user).book(book).createdAt(LocalDateTime.now()).build()
             );
-            case "reading" -> userBookReadingRepository.save(
+            case "READING" -> userBookReadingRepository.save(
                     UserBookReading.builder().user(user).book(book).createdAt(LocalDateTime.now()).build()
             );
-            case "read" -> userBookReadRepository.save(
+            case "READ" -> userBookReadRepository.save(
                     UserBookRead.builder().user(user).book(book).createdAt(LocalDateTime.now()).build()
             );
         }
@@ -82,6 +84,7 @@ public class BookScrapService {
                 .message("도서 스크랩 상태가 저장되었습니다.")
                 .build();
     }
+
 
     private void deleteScrapStatus(Long userId, Integer bookId) {
         userBookWishRepository.deleteByUser_UserIdAndBook_BookId(userId, bookId);

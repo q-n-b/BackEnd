@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public class BookScrapRequestDto {
-    private String status; // "wish", "reading", "read"
+    private String status; // "WISH", "READING", "READ"
 }

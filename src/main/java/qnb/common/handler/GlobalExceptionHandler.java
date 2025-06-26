@@ -184,4 +184,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // 잘못된 타입 처리
+    @ExceptionHandler(InvalidLikeTypeException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidLikeType(InvalidLikeTypeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("INVALID_TYPE", ex.getMessage()));
+    }
+
+    // 대상 없음 처리
+    @ExceptionHandler(TargetNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleTargetNotFound(TargetNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("TARGET_NOT_FOUND", ex.getMessage()));
+    }
+
 }
