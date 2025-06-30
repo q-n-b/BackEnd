@@ -1,12 +1,16 @@
 package qnb.question.entity;
 
 import qnb.book.entity.Book;
+import qnb.like.entity.UserQuestionLike;
+import qnb.scrap.entity.QuestionScrap;
 import qnb.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -38,6 +42,12 @@ public class Question {
 
     @CreationTimestamp //작성일시 save()할 때 자동으로 시간 넣어주는 어노테이션
     private LocalDateTime createdAt; // 작성일시
+
+    @OneToMany(mappedBy = "question")
+    private List<QuestionScrap> scraps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "question")
+    private List<UserQuestionLike> likes = new ArrayList<>();
 
     @Column(name = "answer_count", nullable = false)
     private int answerCount = 0;

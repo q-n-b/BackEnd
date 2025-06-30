@@ -1,4 +1,4 @@
-package qnb.question.controller;
+package qnb.scrap.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import qnb.common.dto.ApiResponse;
 import qnb.common.exception.LoginRequiredException;
-import qnb.question.dto.QuestionScrapResponseDto;
-import qnb.question.service.QuestionScrapService;
+import qnb.scrap.dto.QuestionScrapResponseDto;
+import qnb.scrap.service.QuestionScrapService;
 import qnb.user.security.UserDetailsImpl;
 
 @RestController

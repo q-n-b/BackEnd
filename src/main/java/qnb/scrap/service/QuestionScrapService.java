@@ -1,13 +1,13 @@
-package qnb.question.service;
+package qnb.scrap.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import qnb.common.exception.QuestionNotFoundException;
-import qnb.question.dto.QuestionScrapResponseDto;
+import qnb.scrap.dto.QuestionScrapResponseDto;
 import qnb.question.entity.Question;
-import qnb.question.entity.QuestionScrap;
+import qnb.scrap.entity.QuestionScrap;
 import qnb.question.repository.QuestionRepository;
-import qnb.question.repository.QuestionScrapRepository;
+import qnb.scrap.repository.UserQuestionScrapRepository;
 
 import java.util.Optional;
 
@@ -16,7 +16,7 @@ import java.util.Optional;
 public class QuestionScrapService {
 
     private final QuestionRepository questionRepository;
-    private final QuestionScrapRepository scrapRepository;
+    private final UserQuestionScrapRepository scrapRepository;
 
     public QuestionScrapResponseDto toggleScrap(Long userId, Integer questionId) {
         // 질문 존재 여부 확인

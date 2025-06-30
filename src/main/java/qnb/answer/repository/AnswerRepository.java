@@ -13,7 +13,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     List<Answer> findByQuestion_QuestionId(Long questionId);
 
-    List<Answer> findByUserId(Long userId);
+    List<Answer> findByUser_UserId(Long userId);
 
     @Query("SELECT a.question.questionId, COUNT(a) " +
             "FROM Answer a " +
@@ -28,5 +28,9 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     //키워드로 답변 검색 (full 버전)
     @Query("SELECT a FROM Answer a WHERE LOWER(a.answerContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Answer> searchAnswers(@Param("keyword") String keyword, Pageable pageable);
+
+    //내가 좋아요한 답변 목록
+    @Query("SELECT a FROM Answer a JOIN a.likes l WHERE l.user.id = :userId")
+    Page<Answer> findLikedAnswersByUserId(@Param("userId") Long userId, Pageable pageable);
 
 }

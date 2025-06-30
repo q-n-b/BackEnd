@@ -3,7 +3,12 @@ package qnb.answer.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import qnb.like.entity.UserAnswerLike;
 import qnb.question.entity.Question;
+import qnb.user.entity.User;
 
 
 @Entity
@@ -16,8 +21,9 @@ public class Answer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long answerId;
 
-    @Column(name = "user_id")
-    private Long userId;  // 아무 어노테이션도 붙이지 마
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", nullable = false)
@@ -35,10 +41,13 @@ public class Answer {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "answer")
+    private List<UserAnswerLike> likes = new ArrayList<>();
+
     @Builder
     public Answer(Question question, Long userId, String answerContent, String answerState) {
         this.question = question;
-        this.userId = userId;
+        this.user = user;
         this.answerContent = answerContent;
         this.answerState = answerState;
     }

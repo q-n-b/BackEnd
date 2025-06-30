@@ -1,4 +1,4 @@
-package qnb.question.dto;
+package qnb.scrap.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

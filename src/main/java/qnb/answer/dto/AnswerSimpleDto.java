@@ -19,7 +19,7 @@ public class AnswerSimpleDto {
     public static AnswerSimpleDto from(Answer answer) {
         return new AnswerSimpleDto(
                 answer.getAnswerId(),
-                answer.getUserId(),
+                answer.getUser().getUserId(),
                 answer.getAnswerContent(),
                 answer.getAnswerState()
         );

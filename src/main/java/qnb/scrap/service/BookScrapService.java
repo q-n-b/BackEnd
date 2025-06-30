@@ -1,9 +1,9 @@
-package qnb.book.service;
+package qnb.scrap.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import qnb.book.dto.BookScrapResponseDto;
+import qnb.scrap.dto.BookScrapResponseDto;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
 import qnb.common.exception.InvalidStatusException;

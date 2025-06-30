@@ -42,4 +42,13 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     @Query("SELECT q FROM Question q WHERE LOWER(q.questionContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Question> searchQuestions(@Param("keyword") String keyword, Pageable pageable);
+
+    //내가 스크랩한 질문 목록
+    @Query("SELECT q FROM Question q JOIN q.scraps s WHERE s.userId = :userId")
+    Page<Question> findScrappedQuestionsByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    //내가 좋아요한 질문 목록
+    @Query("SELECT q FROM Question q JOIN q.likes l WHERE l.user.id = :userId")
+    Page<Question> findLikedQuestionsByUserId(@Param("userId") Long userId, Pageable pageable);
+
 }

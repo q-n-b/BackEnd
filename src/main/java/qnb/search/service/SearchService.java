@@ -212,7 +212,7 @@ public class SearchService {
                     answers.getContent().stream()
                             .filter(a -> a.getQuestion() != null && a.getQuestion().getBook() != null)
                             .map(a -> {
-                                User user = userRepository.findById(a.getUserId())
+                                User user = userRepository.findById(a.getUser().getUserId())
                                         .orElseThrow(UserNotFoundException::new);
 
                                 return new AnswerSearchOneDto(

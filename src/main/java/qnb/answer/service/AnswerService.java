@@ -56,7 +56,7 @@ public class AnswerService {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(AnswerNotFoundException::new); // 404
 
-        if (!answer.getUserId().equals(loginUserId)) {
+        if (!answer.getUser().getUserId().equals(loginUserId)) {
             throw new UnauthorizedAccessException(); // 403
         }
 
@@ -68,7 +68,7 @@ public class AnswerService {
         answer.setAnswerContent(dto.getAnswerContent());
         answer.setAnswerState(dto.getAnswerState());
 
-        User user = userRepository.findById(answer.getUserId())
+        User user = userRepository.findById(answer.getUser().getUserId())
                 .orElseThrow(UserNotFoundException::new);
 
         answer.getQuestion().getQuestionId();
@@ -76,7 +76,7 @@ public class AnswerService {
         return new AnswerResponseDto(
                 answer.getQuestion().getQuestionId().longValue(),
                 answer,
-                String.valueOf(answer.getUserId()), // 또는 answer.getUser().getUserId() → String 변환
+                String.valueOf(answer.getUser().getUserId()), // 또는 answer.getUser().getUserId() → String 변환
                 user.getUserNickname(),
                 user.getProfileUrl()
         );
@@ -89,7 +89,7 @@ public class AnswerService {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(AnswerNotFoundException::new); // 404
 
-        if (!answer.getUserId().equals(loginUserId)) {
+        if (!answer.getUser().getUserId().equals(loginUserId)) {
             throw new UnauthorizedAccessException(); // 403
         }
 

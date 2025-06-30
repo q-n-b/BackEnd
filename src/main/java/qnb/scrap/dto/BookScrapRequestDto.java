@@ -1,4 +1,4 @@
-package qnb.book.dto;
+package qnb.scrap.dto;
 
 import lombok.Getter;
 

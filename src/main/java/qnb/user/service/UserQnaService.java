@@ -35,7 +35,7 @@ public class UserQnaService {
 
         // 사용자가 작성한 답변 목록 (중복 질문 제거)
         if (type == null || type.equals("ANSWER")) {
-            List<Answer> myAnswers = answerRepository.findByUserId(userId);
+            List<Answer> myAnswers = answerRepository.findByUser_UserId(userId);
 
             // 상태 우선순위 정의
             Map<String, Integer> stateOrder = Map.of(

@@ -1,12 +1,12 @@
-package qnb.book.controller;
+package qnb.scrap.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import qnb.book.dto.BookScrapRequestDto;
-import qnb.book.dto.BookScrapResponseDto;
-import qnb.book.service.BookScrapService;
+import qnb.scrap.dto.BookScrapRequestDto;
+import qnb.scrap.dto.BookScrapResponseDto;
+import qnb.scrap.service.BookScrapService;
 import qnb.common.dto.ApiResponse;
 import qnb.common.exception.InvalidStatusException;
 import qnb.common.exception.LoginRequiredException;

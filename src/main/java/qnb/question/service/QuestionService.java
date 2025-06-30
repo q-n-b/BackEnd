@@ -181,7 +181,7 @@ public class QuestionService {
         Map<Long, List<Answer>> grouped = answers.stream()
                 .sorted(comparator)
                 .collect(Collectors.groupingBy(
-                        Answer::getUserId,
+                        answer -> answer.getUser().getUserId(),
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));

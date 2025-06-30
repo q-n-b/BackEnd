@@ -1,4 +1,4 @@
-package qnb.question.entity;
+package qnb.scrap.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.Id;
+import qnb.question.entity.Question;
 
 import java.time.LocalDateTime;
 
