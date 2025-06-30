@@ -100,6 +100,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    //스크랩 없을 때
+    @ExceptionHandler(ScrapNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleScrapNotFound(ScrapNotFoundException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("errorCode", "SCRAP_NOT_FOUND");
+        response.put("errorMessage", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+
     //권한이 없을 경우
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<?> handleUnauthorized(UnauthorizedAccessException ex) {

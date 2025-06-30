@@ -92,4 +92,32 @@ public class BookScrapService {
         userBookReadRepository.deleteByUser_UserIdAndBook_BookId(userId, bookId);
     }
 
+    //삭제 메소드
+    @Transactional
+    public void deleteScrap(Long userId, Integer bookId) {
+        // 도서 존재 여부 체크
+        if (!bookRepository.existsById(bookId)) {
+            throw new BookNotFoundException();
+        }
+
+        // 유저 존재 여부 체크
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException();
+        }
+
+        // 현재 상태 확인
+        boolean isWish = userBookWishRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
+        boolean isReading = userBookReadingRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
+        boolean isRead = userBookReadRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
+
+        // 아무 스크랩도 없다면 예외
+        if (!isWish && !isReading && !isRead) {
+            throw new qnb.common.exception.ScrapNotFoundException();
+        }
+
+        // 삭제
+        deleteScrapStatus(userId, bookId);
+    }
+
+
 }
