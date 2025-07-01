@@ -96,14 +96,14 @@ public class UserFavoriteService {
         //  각 Question에 대해 isLiked, isScrapped 여부 확인하고 DTO로 매핑
         List<LikeQuestionDto> dtos = likes.stream()
                 .map(q -> {
+                    // 여기서는 무조건 true
+                    boolean isLiked = true;
 
-                    // 좋아요 여부
-                    boolean isLiked = userQuestionLikeRepository.existsByUser_UserIdAndQuestion_QuestionId(userId, q.getQuestionId());
-                    // 스크랩 여부
-                    boolean isScrapped = userQuestionScrapRepository.existsByUserIdAndQuestion_QuestionId(userId, q.getQuestionId());
+                    // 스크랩 여부는 조회
+                    boolean isScrapped = userQuestionScrapRepository.existsByUserIdAndQuestion_QuestionId(
+                            userId, q.getQuestionId());
 
-                    // DTO 생성
-                    return LikeQuestionDto.from(q, isLiked, isScrapped);
+                    return LikeQuestionDto.from(q, isScrapped, isLiked);
                 })
                 .toList();
 
