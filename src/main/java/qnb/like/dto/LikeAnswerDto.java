@@ -42,13 +42,14 @@ public class LikeAnswerDto {
                 .answerContent(answer.getAnswerContent())
                 .answerState(answer.getAnswerState())
                 .likeCount(answer.getLikeCount())
-                .userId(answer.getUser().getUserId())
-                .userNickname(answer.getUser().getUserNickname())
-                .profileUrl(answer.getUser().getProfileUrl())
+                .userId(answer.getUser() != null ? answer.getUser().getUserId() : null)
+                .userNickname(answer.getUser() != null ? answer.getUser().getUserNickname() : null)
+                .profileUrl(answer.getUser() != null ? answer.getUser().getProfileUrl() : null)
                 .isLiked(isLiked)
                 .createdAt(answer.getCreatedAt())
-                .book(BookSimpleDto.from(answer.getQuestion().getBook()))
-                .question(QuestionSimpleDto.from(answer.getQuestion()))
+                .book(answer.getQuestion() != null && answer.getQuestion().getBook() != null ? BookSimpleDto.from(answer.getQuestion().getBook()) : null)
+                .question(answer.getQuestion() != null ? QuestionSimpleDto.from(answer.getQuestion()) : null)
                 .build();
     }
+
 }

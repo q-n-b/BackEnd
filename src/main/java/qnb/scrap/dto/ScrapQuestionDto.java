@@ -25,7 +25,7 @@ public class ScrapQuestionDto {
 
     private boolean isScrapped;
     private boolean isLiked;
-    
+
     @JsonGetter("isScrapped")
     public boolean getIsScrapped() {
         return isScrapped;
@@ -45,18 +45,19 @@ public class ScrapQuestionDto {
             boolean isLiked
     ) {
         return ScrapQuestionDto.builder()
-                .questionId(q.getQuestionId().longValue())
+                .questionId(q.getQuestionId() != null ? q.getQuestionId().longValue() : null)
                 .questionContent(q.getQuestionContent())
                 .scrapCount(q.getScrapCount())
                 .likeCount(q.getLikeCount())
                 .answerCount(q.getAnswerCount())
-                .userId(q.getUser().getUserId())
-                .userNickname(q.getUser().getUserNickname())
-                .profileUrl(q.getUser().getProfileUrl())
+                .userId(q.getUser() != null ? q.getUser().getUserId() : null)
+                .userNickname(q.getUser() != null ? q.getUser().getUserNickname() : null)
+                .profileUrl(q.getUser() != null ? q.getUser().getProfileUrl() : null)
                 .isScrapped(isScrapped)
                 .isLiked(isLiked)
                 .createdAt(q.getCreatedAt())
-                .book(BookSimpleDto.from(q.getBook()))
+                .book(q.getBook() != null ? BookSimpleDto.from(q.getBook()) : null)
                 .build();
     }
+
 }
