@@ -29,5 +29,10 @@ public class QuestionScrap {
     @JoinColumn(name = "question_id")
     private Question question;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

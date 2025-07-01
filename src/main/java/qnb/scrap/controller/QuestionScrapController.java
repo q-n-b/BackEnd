@@ -33,7 +33,12 @@ public class QuestionScrapController {
         Long userId = userDetails.getUserId();
         QuestionScrapResponseDto result = questionScrapService.toggleScrap(userId, questionId);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("스크랩이 완료되었습니다.", result));
+        // scrapped 상태에 따라 메시지 선택
+        String message = result.isScrapped()
+                ? "스크랩이 완료되었습니다."
+                : "스크랩이 취소되었습니다.";
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(message, result));
     }
 }
