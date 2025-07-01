@@ -1,6 +1,7 @@
 package qnb.like.dto;
 //답변 1개에 대한 정보 DTO
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 public class LikeAnswerDto {
+
     private Long answerId;
     private String answerContent;
     private String answerState;
@@ -26,19 +28,27 @@ public class LikeAnswerDto {
     private BookSimpleDto book;
     private QuestionSimpleDto question;
 
-    public static LikeAnswerDto from(Answer a) {
+    @JsonProperty("isLiked")
+    public boolean getIsLiked() {
+        return isLiked;
+    }
+
+    public static LikeAnswerDto from(
+            Answer answer,
+            boolean isLiked
+    ) {
         return LikeAnswerDto.builder()
-                .answerId(a.getAnswerId())
-                .answerContent(a.getAnswerContent())
-                .answerState(a.getAnswerState())
-                .likeCount(a.getLikeCount())
-                .userId(a.getUser().getUserId())
-                .userNickname(a.getUser().getUserNickname() != null ? a.getUser().getUserNickname() : "")
-                .profileUrl(a.getUser().getProfileUrl() != null ? a.getUser().getProfileUrl() : "")
-                .isLiked(true)
-                .createdAt(a.getCreatedAt())
-                .book(BookSimpleDto.from(a.getQuestion().getBook()))
-                .question(QuestionSimpleDto.from(a.getQuestion()))
+                .answerId(answer.getAnswerId())
+                .answerContent(answer.getAnswerContent())
+                .answerState(answer.getAnswerState())
+                .likeCount(answer.getLikeCount())
+                .userId(answer.getUser().getUserId())
+                .userNickname(answer.getUser().getUserNickname())
+                .profileUrl(answer.getUser().getProfileUrl())
+                .isLiked(isLiked)
+                .createdAt(answer.getCreatedAt())
+                .book(BookSimpleDto.from(answer.getQuestion().getBook()))
+                .question(QuestionSimpleDto.from(answer.getQuestion()))
                 .build();
     }
 }

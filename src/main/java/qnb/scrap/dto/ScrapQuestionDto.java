@@ -1,5 +1,7 @@
 package qnb.scrap.dto;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @AllArgsConstructor
-public class ScrapDto {
+public class ScrapQuestionDto {
     private Long questionId;
     private String questionContent;
     private int scrapCount;
@@ -20,13 +22,29 @@ public class ScrapDto {
     private Long userId;
     private String userNickname;
     private String profileUrl;
+
     private boolean isScrapped;
     private boolean isLiked;
+    
+    @JsonGetter("isScrapped")
+    public boolean getIsScrapped() {
+        return isScrapped;
+    }
+
+    @JsonGetter("isLiked")
+    public boolean getIsLiked() {
+        return isLiked;
+    }
+
     private LocalDateTime createdAt;
     private BookSimpleDto book;
 
-    public static ScrapDto from(Question q) {
-        return ScrapDto.builder()
+    public static ScrapQuestionDto from(
+            Question q,
+            boolean isScrapped,
+            boolean isLiked
+    ) {
+        return ScrapQuestionDto.builder()
                 .questionId(q.getQuestionId().longValue())
                 .questionContent(q.getQuestionContent())
                 .scrapCount(q.getScrapCount())
@@ -35,11 +53,10 @@ public class ScrapDto {
                 .userId(q.getUser().getUserId())
                 .userNickname(q.getUser().getUserNickname())
                 .profileUrl(q.getUser().getProfileUrl())
-                .isScrapped(true)             // 항상 true
-                .isLiked(false)               // 항상 false 혹은 표시 안함
+                .isScrapped(isScrapped)
+                .isLiked(isLiked)
                 .createdAt(q.getCreatedAt())
                 .book(BookSimpleDto.from(q.getBook()))
                 .build();
     }
-
 }

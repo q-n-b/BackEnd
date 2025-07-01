@@ -10,7 +10,14 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class LikeQuestionsResponseDto {
-    private List<LikeQuestionDto> questions;
-    private PageInfoDto pageInfo;
+    private Likes likes;           // 루트에 likes
+    private PageInfoDto pageInfo;  // 루트에 pageInfo
+
+    @Getter
+    @AllArgsConstructor
+    public static class Likes {
+        private List<LikeQuestionDto> questions;
+    }
 }
+
 

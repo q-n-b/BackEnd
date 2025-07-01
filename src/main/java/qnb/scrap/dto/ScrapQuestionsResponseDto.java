@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ScrapResponseDto {
-    private List<ScrapDto> scraps;
+public class ScrapQuestionsResponseDto {
+    private List<ScrapQuestionDto> scraps;
     private PageInfoDto pageInfo;
 }

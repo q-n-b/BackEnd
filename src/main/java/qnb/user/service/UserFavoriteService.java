@@ -16,8 +16,8 @@ import qnb.like.repository.UserAnswerLikeRepository;
 import qnb.like.repository.UserQuestionLikeRepository;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
-import qnb.scrap.dto.ScrapDto;
-import qnb.scrap.dto.ScrapResponseDto;
+import qnb.scrap.dto.ScrapQuestionDto;
+import qnb.scrap.dto.ScrapQuestionsResponseDto;
 import qnb.scrap.repository.UserQuestionScrapRepository;
 
 import java.util.List;
@@ -30,13 +30,15 @@ public class UserFavoriteService {
     private final AnswerRepository answerRepository;
     private final UserQuestionLikeRepository userQuestionLikeRepository;
     private final UserQuestionScrapRepository userQuestionScrapRepository;
+    private final UserAnswerLikeRepository userAnswerLikeRepository;
+
 
 
     public Object getFavorites(Long userId, String type, String target, Pageable pageable) {
 
         // SCRAP 조회
         if (type.equalsIgnoreCase("SCRAP")) {
-            return getScraps(userId, pageable);
+            return getScrapQuestions(userId, pageable);
         }
 
         // LIKE 조회
@@ -60,16 +62,24 @@ public class UserFavoriteService {
         }
     }
 
-    //내가 스크랩한 질문 목록
-    private ScrapResponseDto getScraps(Long userId, Pageable pageable) {
+    //내가 스크랩한 질문 목록 조회
+    private ScrapQuestionsResponseDto getScrapQuestions(Long userId, Pageable pageable) {
         Page<Question> scraps = questionRepository.findScrappedQuestionsByUserId(userId, pageable);
 
-        List<ScrapDto> scrapDtos = scraps.stream()
-                .map(ScrapDto::from)
+        List<ScrapQuestionDto> dtos = scraps.stream()
+                .map(q -> {
+                    boolean isScrapped = userQuestionScrapRepository.existsByUserIdAndQuestion_QuestionId(
+                            userId, q.getQuestionId());
+
+                    boolean isLiked = userQuestionLikeRepository.existsByUser_UserIdAndQuestion_QuestionId(
+                            userId, q.getQuestionId());
+
+                    return ScrapQuestionDto.from(q, isScrapped, isLiked);
+                })
                 .toList();
 
-        return new ScrapResponseDto(
-                scrapDtos,
+        return new ScrapQuestionsResponseDto(
+                dtos,
                 new PageInfoDto(
                         scraps.getNumber() + 1,
                         scraps.getTotalPages(),
@@ -79,16 +89,26 @@ public class UserFavoriteService {
     }
 
 
-    //내가 좋아요한 질문 목록
+    //내가 좋아요한 질문 목록 조회
     private LikeQuestionsResponseDto getLikedQuestions(Long userId, Pageable pageable) {
         Page<Question> likes = questionRepository.findLikedQuestionsByUserId(userId, pageable);
 
-        List<LikeQuestionDto> likeDtos = likes.stream()
-                .map(LikeQuestionDto::from)
+        //  각 Question에 대해 isLiked, isScrapped 여부 확인하고 DTO로 매핑
+        List<LikeQuestionDto> dtos = likes.stream()
+                .map(q -> {
+
+                    // 좋아요 여부
+                    boolean isLiked = userQuestionLikeRepository.existsByUser_UserIdAndQuestion_QuestionId(userId, q.getQuestionId());
+                    // 스크랩 여부
+                    boolean isScrapped = userQuestionScrapRepository.existsByUserIdAndQuestion_QuestionId(userId, q.getQuestionId());
+
+                    // DTO 생성
+                    return LikeQuestionDto.from(q, isLiked, isScrapped);
+                })
                 .toList();
 
         return new LikeQuestionsResponseDto(
-                likeDtos,
+                new LikeQuestionsResponseDto.Likes(dtos),
                 new PageInfoDto(
                         likes.getNumber() + 1,
                         likes.getTotalPages(),
@@ -97,21 +117,26 @@ public class UserFavoriteService {
         );
     }
 
-    //내가 좋아요한 답변 목록
+    //내가 좋아요한 답변 목록 조회
     private LikeAnswersResponseDto getLikedAnswers(Long userId, Pageable pageable) {
         Page<Answer> likes = answerRepository.findLikedAnswersByUserId(userId, pageable);
 
-        List<LikeAnswerDto> likeDtos = likes.stream()
-                .map(LikeAnswerDto::from)
+        List<LikeAnswerDto> answerDtos = likes.stream()
+                .map(answer -> {
+                    boolean isLiked = userAnswerLikeRepository.existsByUser_UserIdAndAnswer_AnswerId(
+                            userId, answer.getAnswerId().intValue());
+                    return LikeAnswerDto.from(answer, isLiked);
+                })
                 .toList();
 
         return new LikeAnswersResponseDto(
-                new LikeAnswersResponseDto.Likes(likeDtos),
+                new LikeAnswersResponseDto.Likes(answerDtos),
                 new PageInfoDto(
-                likes.getNumber() + 1,
-                likes.getTotalPages(),
-                likes.getTotalElements()
-        )
+                        likes.getNumber() + 1,
+                        likes.getTotalPages(),
+                        likes.getTotalElements()
+                )
         );
     }
+
 }
