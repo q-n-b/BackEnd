@@ -6,7 +6,6 @@ import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -64,13 +63,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        /*config.setAllowedOrigins(List.of(
+        config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://52.62.157.118:3000",
+                "http://3.107.175.151:3000",
                 "http://192.168.0.109:3000",
                 "http://192.168.0.17:3000"
-        ));*/
-        config.addAllowedOriginPattern("*");
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
