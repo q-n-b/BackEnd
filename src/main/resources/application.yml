@@ -5,7 +5,7 @@ server:
 spring:
   # 실제 사용하는 내 DB
   datasource:
-    url: jdbc:mysql://16.176.183.78:3306/qnb_database
+    url: jdbc:mysql://52.62.157.118:3306/qnb_database
     username: root
     password: "Dang1216@@"
     driver-class-name: com.mysql.cj.jdbc.Driver
