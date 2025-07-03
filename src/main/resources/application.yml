@@ -10,6 +10,9 @@ spring:
     password: "Dang1216@@"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  mvc:
+    dispatch-options-request: true
+    
   jpa:
     hibernate:
       ddl-auto: update  # 개발 중에는 update, 배포 시에는 validate 또는 none 권장
