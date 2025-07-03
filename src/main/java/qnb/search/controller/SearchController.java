@@ -55,5 +55,11 @@ public class SearchController {
 
         throw new InvalidSearchModeException();
     }
+
+    @RequestMapping(method = RequestMethod.OPTIONS)
+    public ResponseEntity<?> handleOptions() {
+        return ResponseEntity.ok().build();
+    }
+
 }
 
