@@ -1,6 +1,7 @@
 package qnb.common.config;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import qnb.user.JWT.JwtAuthenticationFilter;
 import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.service.CustomUserDetailsService;
@@ -83,4 +84,11 @@ public class SecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
     }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers(HttpMethod.OPTIONS, "/**");
+    }
+
 }
