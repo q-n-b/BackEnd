@@ -29,10 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        //  OPTIONS 요청은 필터를 적용하지 않음
-        System.out.println("JwtAuthenticationFilter skipping for method: " + request.getMethod());
-        return "OPTIONS".equalsIgnoreCase(request.getMethod());
+        // 모든 요청을 필터하지 않게 (디버그)
+        return true;
     }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

@@ -43,11 +43,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/questions/recent").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+
+                        .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
 
                         //보호 경로
                         .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
                         .requestMatchers("/api/users/preferences").authenticated()
-                        .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
+
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(httpBasic -> httpBasic.disable());
