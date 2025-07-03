@@ -1,6 +1,7 @@
 package qnb.common.config;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.web.filter.CorsFilter;
 import qnb.user.JWT.JwtAuthenticationFilter;
 import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.service.CustomUserDetailsService;
@@ -85,6 +86,19 @@ public class SecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
     }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://3.107.175.151:3000");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+
 
 
 }
