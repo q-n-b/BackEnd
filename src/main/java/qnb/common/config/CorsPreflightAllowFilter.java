@@ -1,3 +1,4 @@
+/*
 package qnb.common.config;
 
 import jakarta.servlet.*;
@@ -38,3 +39,4 @@ public class CorsPreflightAllowFilter implements Filter {
         chain.doFilter(req, res);
     }
 }
+*/
