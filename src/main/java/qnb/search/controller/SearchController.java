@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import qnb.common.exception.InvalidSearchModeException;
 import qnb.common.exception.MissingFieldException;
 import qnb.common.exception.SearchNoResultException;
@@ -15,6 +12,11 @@ import qnb.search.service.SearchService;
 
 @RestController
 @RequestMapping("/api/search")
+@CrossOrigin(
+        origins = "http://3.107.175.151:3000",
+        allowedHeaders = "*",
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS, RequestMethod.PUT, RequestMethod.DELETE}
+)
 @RequiredArgsConstructor
 public class SearchController {
 
