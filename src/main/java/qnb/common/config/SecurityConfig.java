@@ -86,16 +86,4 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
     }
 
-    /*@Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://13.236.85.98:3000");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
-    }*/
-
 }

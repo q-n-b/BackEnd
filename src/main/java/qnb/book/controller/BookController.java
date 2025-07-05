@@ -6,6 +6,7 @@ import qnb.book.service.BookService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import qnb.common.exception.LoginRequiredException;
 import qnb.user.security.UserDetailsImpl;
 
 @RestController
@@ -44,7 +45,7 @@ public class BookController {
     @GetMapping
     public ResponseEntity<?> getBooksByType(
             @RequestParam String type,
-            @RequestParam(required = false) String category, // genre로 매핑됨
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer bookId,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false, defaultValue = "0") int page,
@@ -52,39 +53,48 @@ public class BookController {
             @RequestParam(required = false) Integer limit,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-
-        Long userId = userDetails.getUserId(); // 👈 userId 추출
-
-        System.out.println("🔥 userId = " + userId); // 디버깅 로그
-
         return switch (type) {
             case "recommendations" -> {
+
+                // 로그인 안 되어 있으면 401
+                if (userDetails == null) {
+                    throw new LoginRequiredException();
+                }
+
+                Long userId = userDetails.getUserId();
+
+                //개인 추천 도서 1권
                 if (limit != null && limit == 1) {
-                    // 개인 추천 도서 1권 조회
                     yield ResponseEntity.ok(bookService.getSingleRecommendedBook(userId));
                 }
-                // 개인 추천 도서 전체 조회
+
+                //개인 추천 도서 리스트 조회
                 yield ResponseEntity.ok(bookService.getRecommendedBooks(userId));
             }
 
-            // 장르별 추천 도서
-            case "category-recommendations" ->
-                    ResponseEntity.ok(bookService.getRecommendedBooksByGenre(category));
+            //카테고리별 추천 도서 조회
+            case "category-recommendations" -> {
+                yield ResponseEntity.ok(bookService.getRecommendedBooksByGenre(category));
+            }
 
-            // 신간 도서
-            case "new" ->
-                    ResponseEntity.ok(bookService.getNewBooks(PageRequest.of(page, size)));
+            //신간 도서 조회
+            case "new" -> {
+                yield ResponseEntity.ok(bookService.getNewBooks(PageRequest.of(page, size)));
+            }
 
-            // 도서 상세 조회
-            case "detail" ->
-                    ResponseEntity.ok(bookService.getBookDetail(bookId));
+            //도서 상세 조회
+            case "detail" -> {
+                yield ResponseEntity.ok(bookService.getBookDetail(bookId));
+            }
 
-            // 도서 관련 질문 목록
-            case "questions" ->
-                    ResponseEntity.ok(bookService.getBookQuestions(bookId, sort, PageRequest.of(page, size)));
+            //도서별 질문 리스트 조회
+            case "questions" -> {
+                yield ResponseEntity.ok(bookService.getBookQuestions(bookId, sort, PageRequest.of(page, size)));
+            }
 
-            default ->
-                    ResponseEntity.badRequest().body("지원하지 않는 type입니다.");
+            default -> {
+                yield ResponseEntity.badRequest().body("지원하지 않는 type입니다.");
+            }
         };
     }
 }
