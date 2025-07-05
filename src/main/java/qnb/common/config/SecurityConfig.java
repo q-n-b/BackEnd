@@ -1,7 +1,7 @@
 package qnb.common.config;
 
 import org.springframework.http.HttpMethod;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.security.config.Customizer;
 import qnb.user.JWT.JwtAuthenticationFilter;
 import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.service.CustomUserDetailsService;
@@ -35,7 +35,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         //공개 경로
@@ -64,7 +64,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /*@Bean
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
@@ -80,14 +80,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
-    }*/
+    }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
     }
 
-    @Bean
+    /*@Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
@@ -97,8 +97,6 @@ public class SecurityConfig {
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
-    }
-
-
+    }*/
 
 }
