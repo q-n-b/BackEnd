@@ -49,6 +49,7 @@ public class SecurityConfig {
                         //보호 경로
                         .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
                         .requestMatchers("/api/users/preferences").authenticated()
+                        .requestMatchers("/api/users/me").authenticated()
 
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
