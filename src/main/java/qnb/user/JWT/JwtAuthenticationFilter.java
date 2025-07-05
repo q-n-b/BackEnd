@@ -27,12 +27,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        // 모든 요청을 필터하지 않게 (디버그)
-        return true;
-    }
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
