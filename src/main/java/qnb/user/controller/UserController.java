@@ -144,7 +144,12 @@ public class UserController {
             throw new UserNotFoundException();
         }
 
-        UserInfoResponseDto response = userService.getMyInfo(userDetails.getUser());
+        User user = Optional.ofNullable(userDetails)
+                .map(UserDetailsImpl::getUser)
+                .orElseThrow(UserNotFoundException::new);
+
+        UserInfoResponseDto response = userService.getMyInfo(user);
+
         return ResponseEntity.ok(response);
     }
 }
