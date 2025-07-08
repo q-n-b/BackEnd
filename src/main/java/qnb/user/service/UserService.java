@@ -62,4 +62,12 @@ public class UserService {
         user.setUserNickname(newNickname);
         userRepository.save(user);
     }
+
+    //계정 탈퇴
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(LoginRequiredException::new);
+
+        userRepository.delete(user);
+    }
 }

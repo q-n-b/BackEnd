@@ -170,4 +170,21 @@ public class UserController {
 
         return ResponseEntity.ok(Map.of("message", "닉네임이 변경되었습니다."));
     }
+
+    //계정 탈퇴
+    @DeleteMapping("/me")
+    public ResponseEntity<Map<String, String>> deleteUser(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        try {
+            userService.deleteUser(userDetails.getUserId());
+            return ResponseEntity.ok(Map.of("message", "계정이 정상적으로 삭제되었습니다."));
+        } catch (LoginRequiredException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("errorCode", "UNAUTHORIZED", "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("errorCode", "INTERNAL_SERVER_ERROR", "message", "계정 탈퇴 처리 중 서버 오류가 발생했습니다."));
+        }
+    }
+
 }
