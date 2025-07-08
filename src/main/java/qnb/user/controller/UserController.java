@@ -3,9 +3,7 @@ package qnb.user.controller;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import qnb.common.exception.*;
 import qnb.user.JWT.JwtTokenProvider;
-import qnb.user.dto.LoginRequestDto;
-import qnb.user.dto.SignupRequestDto;
-import qnb.user.dto.UserInfoResponseDto;
+import qnb.user.dto.*;
 import qnb.user.entity.RefreshToken;
 import qnb.user.entity.User;
 import qnb.user.repository.RefreshTokenRepository;
@@ -22,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -151,5 +150,24 @@ public class UserController {
         UserInfoResponseDto response = userService.getMyInfo(user);
 
         return ResponseEntity.ok(response);
+    }
+
+    //비밀번호 변경
+    @PatchMapping("/me/password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequestDto request,
+                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        userService.changePassword(userDetails.getUserId(), request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok(Collections.singletonMap("message", "비밀번호가 변경되었습니다."));
+    }
+
+    //닉네임 변경
+    @PatchMapping("/me/nickname")
+    public ResponseEntity<Map<String, String>> changeNickname(
+            @RequestBody ChangeNicknameRequestDto request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        userService.changeNickname(userDetails.getUserId(), request.getUserNickname());
+
+        return ResponseEntity.ok(Map.of("message", "닉네임이 변경되었습니다."));
     }
 }

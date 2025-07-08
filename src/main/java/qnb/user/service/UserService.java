@@ -1,5 +1,8 @@
 package qnb.user.service;
 
+import org.apache.coyote.BadRequestException;
+import qnb.common.exception.LoginRequiredException;
+import qnb.common.exception.PasswordMismatchException;
 import qnb.user.dto.SignupRequestDto;
 import qnb.user.dto.UserInfoResponseDto;
 import qnb.user.entity.User;
@@ -36,5 +39,27 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
 
         return new UserInfoResponseDto(foundUser);
+    }
+
+    //비밀번호 변경
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(LoginRequiredException::new);
+
+        if (!passwordEncoder.matches(currentPassword, user.getUserPassword())) {
+            throw new PasswordMismatchException();
+        }
+
+        user.setUserPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    //닉네임 변경
+    public void changeNickname(Long userId, String newNickname) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        user.setUserNickname(newNickname);
+        userRepository.save(user);
     }
 }
