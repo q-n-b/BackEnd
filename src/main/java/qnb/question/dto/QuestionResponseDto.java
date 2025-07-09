@@ -46,7 +46,7 @@ public class QuestionResponseDto {
                 question.getUser().getUserNickname(),
                 question.getUser().getProfileUrl(),
                 question.getQuestionContent(),
-                answerCount,
+                question.getAnswerCount(),
                 question.getLikeCount(),
                 question.getScrapCount(),
                 question.getCreatedAt()
