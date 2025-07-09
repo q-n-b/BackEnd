@@ -1,6 +1,6 @@
 package qnb.question.dto;
-
 //도서별 질문 조회 API에서 book, 질문리스트,pageinfo 반환하는 DTO
+
 import lombok.Data;
 import qnb.book.dto.BookSimpleDto;
 import qnb.common.dto.PageInfoDto;

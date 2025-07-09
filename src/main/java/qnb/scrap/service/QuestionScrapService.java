@@ -45,6 +45,8 @@ public class QuestionScrapService {
             isScrapped = true;
         }
 
+        questionRepository.save(question);
+
         updatedCount = question.getScrapCount();
 
         return new QuestionScrapResponseDto(questionId, updatedCount, isScrapped);

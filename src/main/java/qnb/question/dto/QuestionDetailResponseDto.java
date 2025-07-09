@@ -1,4 +1,5 @@
 package qnb.question.dto;
+//질문 상세 조회시에 쓰이는 DTO
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
