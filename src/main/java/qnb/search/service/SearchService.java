@@ -133,70 +133,7 @@ public class SearchService {
 
         }
 
-        //2. 질문 검색 결과
-        else if (type.equals("QUESTION")) {
-            //키워드 없을 때
-            if (keyword == null || keyword.trim().isEmpty()) {
-                QuestionPageResponseDto recentResult = questionService.getRecentQuestions(safePage, safeSize);
-
-                List<QuestionSearchOneDto> resultList = recentResult.getQuestions().stream()
-                        .map(q -> new QuestionSearchOneDto(
-                                q.getQuestionId().longValue(),
-                                q.getQuestionContent(),
-                                new BookSimpleDto(  // BookResponseDto → BookSimpleDto 변환
-                                        q.getBook().getBookId(),
-                                        q.getBook().getTitle(),
-                                        q.getBook().getImageUrl(),
-                                        q.getBook().getAuthor(),
-                                        q.getBook().getPublisher(),
-                                        q.getBook().getPublishedYear()
-                                ),
-                                q.getAnswerCount(),
-                                q.getLikeCount(),
-                                q.getScrapCount(),
-                                q.getUserNickname(),
-                                q.getProfileUrl()
-                        ))
-                        .toList();
-
-                return new QuestionSearchResponseDto(
-                        resultList,
-                        recentResult.getPageInfoDto()
-                );
-            }
-
-            //키워드 존재할 때
-            else {
-                Page<Question> questions = questionRepository.searchQuestions(keyword, pageable);
-
-                return new QuestionSearchResponseDto(
-                        questions.getContent().stream()
-                                .map(q -> new QuestionSearchOneDto(
-                                        q.getQuestionId().longValue(),
-                                        q.getQuestionContent(),
-                                        new BookSimpleDto(
-                                                q.getBook().getBookId(),
-                                                q.getBook().getTitle(),
-                                                q.getBook().getImageUrl(),
-                                                q.getBook().getAuthor(),
-                                                q.getBook().getPublisher(),
-                                                q.getBook().getPublishedYear()
-
-                                        ),
-                                        q.getAnswerCount(),
-                                        q.getLikeCount(),
-                                        q.getScrapCount(),
-                                        q.getUser().getUserNickname(),
-                                        q.getUser().getProfileUrl()
-                                ))
-                                .toList(),
-                        new PageInfoDto(
-                                safePage,
-                                questions.getTotalPages(),
-                                (int) questions.getTotalElements())
-                );
-            }
-        }
+        
 
         //3. 답변 검색 결과
         else {
