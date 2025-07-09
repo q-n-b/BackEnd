@@ -31,10 +31,14 @@ public class AnswerService {
         Question question = questionRepository.findById(questionId.intValue())
                 .orElseThrow(QuestionNotFoundException::new);
 
+        // 사용자 조회 추가
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
         // 답변 생성
         Answer answer = Answer.builder()
                 .question(question)
-                .userId(userId)
+                .user(user)
                 .answerContent(dto.getAnswerContent())
                 .answerState(dto.getAnswerState())
                 .build();

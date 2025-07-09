@@ -179,6 +179,7 @@ public class QuestionService {
 
         // 사용자 기준으로 묶기 (정렬 적용)
         Map<Long, List<Answer>> grouped = answers.stream()
+                .filter(answer -> answer.getUser() != null)
                 .sorted(comparator)
                 .collect(Collectors.groupingBy(
                         answer -> answer.getUser().getUserId(),
