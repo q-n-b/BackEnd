@@ -10,7 +10,7 @@ public class QuestionScrapResponseDto {
     private Integer questionId;
     private int scrapCount;
 
-    private boolean scrapped; 
+    private boolean scrapped;
 
     @JsonProperty("isScrapped")
     public boolean isScrapped() {

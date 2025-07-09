@@ -38,7 +38,7 @@ public class QuestionScrapController {
                 ? "스크랩이 완료되었습니다."
                 : "스크랩이 취소되었습니다.";
 
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.CREATED)  // 201로 명시
                 .body(ApiResponse.success(message, result));
     }
 }
