@@ -100,12 +100,12 @@ public class AnswerService {
         Question question = questionRepository.findById(answer.getQuestion().getQuestionId())
                 .orElseThrow(QuestionNotFoundException::new);
 
-        int currentCount = question.getAnswerCount();
-        question.setAnswerCount(Math.max(0, currentCount - 1)); // 0 이하로 안 내려가게
+        //질문 답변 수 감소
+        question.setAnswerCount(Math.max(0, question.getAnswerCount() - 1));
         questionRepository.save(question);
 
+        //응답 반환
         answerRepository.delete(answer);
-
     }
 
 }

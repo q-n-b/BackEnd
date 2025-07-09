@@ -175,7 +175,7 @@ public class QuestionService {
                 .thenComparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo));
 
         // 질문 정보 DTO로 변환
-        QuestionResponseDto questionDto = QuestionResponseDto.from(question, 0);
+        QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
 
         // 사용자 기준으로 묶기 (정렬 적용)
         Map<Long, List<Answer>> grouped = answers.stream()
