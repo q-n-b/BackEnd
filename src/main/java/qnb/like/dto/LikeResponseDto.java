@@ -11,7 +11,11 @@ public class LikeResponseDto {
     private Long id;          // 좋아요 대상 ID
     private int likeCount;    // 현재 좋아요 수
 
-    @JsonProperty("isLiked")
-    private boolean isLiked;  // true: 좋아요 등록됨, false: 취소됨
+    private boolean liked;
+
+    @JsonProperty("isLiked")  // JSON 응답에서만 "isLiked"로 보이게 함
+    public boolean isLiked() {
+        return liked;
+    }
 }
 
