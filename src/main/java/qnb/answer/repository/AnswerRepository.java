@@ -15,6 +15,8 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     List<Answer> findByUser_UserId(Long userId);
 
+    int countByQuestion_QuestionId(Long questionId);
+
     @Query("SELECT a.question.questionId, COUNT(a) " +
             "FROM Answer a " +
             "WHERE a.question.questionId IN :questionIds " +
