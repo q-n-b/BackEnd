@@ -2,6 +2,7 @@ package qnb.like.dto;
 //답변 1개에 대한 정보 DTO
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,10 +24,12 @@ public class LikeAnswerDto {
     private Long userId;
     private String userNickname;
     private String profileUrl;
-    private boolean isLiked;
     private LocalDateTime createdAt;
     private BookSimpleDto book;
     private QuestionSimpleDto question;
+
+    @Getter(AccessLevel.NONE)
+    private boolean isLiked;
 
     @JsonProperty("isLiked")
     public boolean getIsLiked() {

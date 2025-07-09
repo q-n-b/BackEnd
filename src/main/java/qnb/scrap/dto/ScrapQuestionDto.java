@@ -2,6 +2,7 @@ package qnb.scrap.dto;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +24,10 @@ public class ScrapQuestionDto {
     private String userNickname;
     private String profileUrl;
 
+    @Getter(AccessLevel.NONE)
     private boolean isScrapped;
+
+    @Getter(AccessLevel.NONE)
     private boolean isLiked;
 
     @JsonGetter("isScrapped")

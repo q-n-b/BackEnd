@@ -3,6 +3,7 @@ package qnb.like.dto;
 //질문 ID, 내용, 좋아요/스크랩 여부 등 하나의 질문에 대한 정보만 담음
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +25,10 @@ public class LikeQuestionDto {
     private String userNickname;
     private String profileUrl;
 
+    @Getter(AccessLevel.NONE)
     private boolean isScrapped;
+
+    @Getter(AccessLevel.NONE)
     private boolean isLiked;
 
     @JsonGetter("isScrapped")
