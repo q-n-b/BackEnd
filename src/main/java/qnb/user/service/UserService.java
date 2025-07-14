@@ -1,11 +1,16 @@
 package qnb.user.service;
 
+import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
+import qnb.answer.repository.AnswerRepository;
 import qnb.common.exception.LoginRequiredException;
 import qnb.common.exception.PasswordMismatchException;
+import qnb.question.repository.QuestionRepository;
 import qnb.user.dto.SignupRequestDto;
 import qnb.user.dto.UserInfoResponseDto;
 import qnb.user.entity.User;
+import qnb.user.entity.UserPreference;
+import qnb.user.repository.UserPreferenceRepository;
 import qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +25,10 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserPreferenceRepository userPreferenceRepository;
+    private final AnswerRepository answerRepository;
+    private final QuestionRepository questionRepository;
+
 
     public User registerUser(SignupRequestDto request) {
         User user = new User();
@@ -64,10 +73,19 @@ public class UserService {
     }
 
     //계정 탈퇴
+    @Transactional
     public void deleteUser(Long userId) {
+
+        // 1. 유저 존재 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(LoginRequiredException::new);
 
+        // 2. 연관 데이터 삭제
+        userPreferenceRepository.deleteByUser_UserId(userId);
+        answerRepository.deleteByUser_UserId(userId);
+        questionRepository.deleteByUser_UserId(userId);
+
+        //3. 유저 삭제
         userRepository.delete(user);
     }
 }

@@ -35,4 +35,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     @Query("SELECT a FROM Answer a JOIN a.likes l WHERE l.user.id = :userId")
     Page<Answer> findLikedAnswersByUserId(@Param("userId") Long userId, Pageable pageable);
 
+    // 계정 탈퇴에서 사용하는 메소드
+    void deleteByUser_UserId(Long userId);
+
 }

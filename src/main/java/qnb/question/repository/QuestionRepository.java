@@ -51,4 +51,6 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     @Query("SELECT q FROM Question q JOIN q.likes l WHERE l.user.id = :userId")
     Page<Question> findLikedQuestionsByUserId(@Param("userId") Long userId, Pageable pageable);
 
+    //계정 탈퇴에서 사용되는 메소드
+    void deleteByUser_UserId(Long userId);
 }
