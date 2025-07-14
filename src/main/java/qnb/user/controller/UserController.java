@@ -177,7 +177,7 @@ public class UserController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {
             userService.deleteUser(userDetails.getUserId());
-            return ResponseEntity.ok(Map.of("message", "계정이 정상적으로 삭제되었습니다."));
+            return ResponseEntity.noContent().build();  // 204 No Content
         } catch (LoginRequiredException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("errorCode", "UNAUTHORIZED", "message", e.getMessage()));
