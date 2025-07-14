@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import qnb.common.exception.LoginRequiredException;
+import qnb.user.entity.User;
 import qnb.user.security.UserDetailsImpl;
 
 @RestController
@@ -84,7 +85,8 @@ public class BookController {
 
             //도서 상세 조회
             case "detail" -> {
-                yield ResponseEntity.ok(bookService.getBookDetail(bookId));
+                User user = (userDetails != null) ? userDetails.getUser() : null;
+                yield ResponseEntity.ok(bookService.getBookDetail(bookId, user));
             }
 
             //도서별 질문 리스트 조회

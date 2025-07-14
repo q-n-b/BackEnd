@@ -21,10 +21,10 @@ import qnb.common.exception.BookNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import qnb.question.service.QuestionService;
 import qnb.user.entity.User;
 import qnb.user.entity.UserPreference;
-import qnb.user.repository.UserPreferenceRepository;
-import qnb.user.repository.UserRepository;
+import qnb.user.repository.*;
 
 import java.util.List;
 import java.util.Map;
@@ -40,6 +40,9 @@ public class BookService {
     private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final UserBookWishRepository wishRepository;
+    private final UserBookReadingRepository readingRepository;
+    private final UserBookReadRepository readRepository;
 
     //도서 존재 여부 로직
     public boolean existsById(Integer bookId) {
@@ -124,12 +127,35 @@ public class BookService {
                 .map(BookResponseDto::new);
     }
 
-    // 4. 도서 상세 조회
-    public BookResponseDto getBookDetail(Integer bookId) {
+    //상세 조회 메소드
+    public BookDetailResponseDto getBookDetail(Integer bookId, User user) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
-        return new BookResponseDto(book);
+
+        //스크랩 여부 기본값
+        boolean isScrapped = false;
+        String scrapStatus = null;
+
+        //사용자 스크랩 여부 확인
+        if (user != null) {
+            Long userId = user.getUserId();
+            Integer bId = book.getBookId();
+
+            if (wishRepository.existsByUser_UserIdAndBook_BookId(userId, bId)) {
+                isScrapped = true;
+                scrapStatus = "wish";
+            } else if (readingRepository.existsByUser_UserIdAndBook_BookId(userId, bId)) {
+                isScrapped = true;
+                scrapStatus = "reading";
+            } else if (readRepository.existsByUser_UserIdAndBook_BookId(userId, bId)) {
+                isScrapped = true;
+                scrapStatus = "read";
+            }
+        }
+
+        return BookDetailResponseDto.from(book, isScrapped, scrapStatus);
     }
+
 
     // 5. 특정 도서의 질문 리스트 조회
     public QuestionListResponseDto getBookQuestions(Integer bookId, String sort, Pageable pageable) {
