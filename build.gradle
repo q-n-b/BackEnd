@@ -26,6 +26,7 @@ dependencies {
 
 	// ✅ JSON/Jackson
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
 
 	// ✅ Validation
 	implementation 'jakarta.validation:jakarta.validation-api:3.0.2'

@@ -1,5 +1,9 @@
 package qnb.book.service;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import qnb.book.dto.AladinBookXml;
+import qnb.book.dto.AladinResponseXml;
+import qnb.book.dto.Category;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AladinApiService {
@@ -23,50 +26,61 @@ public class AladinApiService {
         this.bookRepository = bookRepository;
     }
 
+    public void fetchAllCategories() {
+        List<Category> categories = List.of(
+                //new Category("한국소설", 50993)
+                new Category("과학소설", 89505)
+                //new Category("로맨스", 103706),
+                //new Category("자기계발", 70216)
+                //new Category("에세이", 50760)
+        );
+
+        for (Category category : categories) {
+            fetchBooksByCategory(category.getName(), category.getId());
+        }
+    }
+
     public void fetchBooksByCategory(String genre, int categoryId) {
         int page = 1;
         int totalSaved = 0;
+        XmlMapper xmlMapper = new XmlMapper();
 
-        while (true) {
+        while (page <= 4) {
+            int start = (page - 1) * 50 + 1;
+            
             String url = String.format(
-                    "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey=%s&QueryType=ItemNewSpecial&MaxResults=100&start=%d&SearchTarget=Book&output=js&CategoryId=%d&Version=20131101",
-                    ttbKey, page, categoryId
+                    "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey=%s&QueryType=ItemNewAll&MaxResults=50&start=%d&SearchTarget=Book&output=xml&CategoryId=%d&Version=20131101",
+                    ttbKey, start, categoryId
             );
 
-            //디버깅용 코드
-            //System.out.println("▶ API 호출 URL: " + url);
-
             try {
-                ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+                String xmlBody = response.getBody();
 
-                //✅ [2단계] API 응답 본문 로그 출력
-                System.out.println("▶ API 응답 내용:");
-                System.out.println(response.getBody());
-
-                List<Map<String, Object>> items = (List<Map<String, Object>>) response.getBody().get("item");
+                AladinResponseXml parsed = xmlMapper.readValue(xmlBody, AladinResponseXml.class);
+                List<AladinBookXml> items = parsed.getItems();
 
                 if (items == null || items.isEmpty()) {
                     System.out.printf(" [%s] 카테고리 수집 완료 (총 %d권 저장됨)\n", genre, totalSaved);
                     break;
                 }
 
-                for (Map<String, Object> item : items) {
-                    String isbn13 = (String) item.get("isbn13");
+                for (AladinBookXml item : items) {
+                    //System.out.println("[DEBUG] title = " + item.getTitle() + ", isbn13 = " + item.getIsbn13());
 
-                    // 중복 체크
+                    String isbn13 = item.getIsbn13();
                     if (isbn13 == null || bookRepository.existsByIsbn13(isbn13)) continue;
 
                     Book book = new Book();
-                    book.setTitle((String) item.get("title"));
-                    book.setAuthor((String) item.get("author"));
+                    book.setTitle(item.getTitle());
+                    book.setAuthor(item.getAuthor());
                     book.setGenre(genre);
-                    book.setPublisher((String) item.get("publisher"));
-                    book.setImageUrl((String) item.get("cover"));
+                    book.setPublisher(item.getPublisher());
+                    book.setImageUrl(item.getCover());
                     book.setIsbn13(isbn13);
-                    book.setDescription((String) item.get("description"));
+                    book.setDescription(item.getDescription());
 
-                    // 출판 연도 추출
-                    String pubDate = (String) item.get("pubDate");
+                    String pubDate = item.getPubDate();
                     if (pubDate != null && pubDate.length() >= 4) {
                         try {
                             int year = Integer.parseInt(pubDate.substring(0, 4));
@@ -74,17 +88,18 @@ public class AladinApiService {
                         } catch (NumberFormatException ignored) {}
                     }
 
+                    book.setSalesPoint(item.getSalesPoint());
+
                     bookRepository.save(book);
                     totalSaved++;
                 }
 
-                page++; // 다음 페이지로
+                page++;
 
             } catch (Exception e) {
                 System.err.printf("API 요청 실패 (%s, page %d): %s\n", genre, page, e.getMessage());
                 break;
             }
-
         }
     }
 }

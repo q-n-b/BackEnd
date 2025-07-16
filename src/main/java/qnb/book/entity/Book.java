@@ -35,6 +35,9 @@ public class Book {
     @Column(columnDefinition = "TEXT")
     private String description; //책 설명
 
+    @Column(name = "sales_point")
+    private Integer salesPoint; //판매 지수
+
     @Column(name = "question_count")
     private int questionCount;
 

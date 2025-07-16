@@ -27,14 +27,8 @@ public class BookController {
      * 알라딘 API를 통해 각 카테고리별 도서 데이터를 수집하여 DB에 저장하는 엔드포인트
      */
     @PostMapping("/fetch")
-    public ResponseEntity<String> importBooks() {
-        // [장르명, 알라딘 CategoryId]
-        aladinApiService.fetchBooksByCategory("한국소설", 50973);
-        aladinApiService.fetchBooksByCategory("과학소설", 50992);
-        aladinApiService.fetchBooksByCategory("로맨스", 50976);
-        aladinApiService.fetchBooksByCategory("자기계발", 336);
-        aladinApiService.fetchBooksByCategory("에세이", 2551);
-
+    public ResponseEntity<String> importAllBooks() {
+        aladinApiService.fetchAllCategories();
         return ResponseEntity.ok("도서 수집 완료");
     }
 

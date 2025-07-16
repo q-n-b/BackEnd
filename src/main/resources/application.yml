@@ -5,9 +5,9 @@ server:
 spring:
   # 실제 사용하는 내 DB
   datasource:
-    url: jdbc:mysql://localhost:3306/qnb_database
-    username: root
-    password: "Dang1216@@"
+    url: jdbc:mysql://qnb-database.cjqc84a84hgy.ap-southeast-2.rds.amazonaws.com:3306/qnb_database
+    username: admin
+    password: "Dang1216"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   mvc:
@@ -16,6 +16,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update  # 개발 중에는 update, 배포 시에는 validate 또는 none 권장
+    show-sql: true
     properties:
       hibernate:
         format_sql: true  # SQL 쿼리를 예쁘게 출력
@@ -28,14 +29,15 @@ spring:
     serialization:
       fail-on-empty-beans: false  # Bean에 필드가 없어도 직렬화 오류 발생하지 않도록 설정
 
-# JWT 설정 (보안 키와 만료 시간)
-jwt:
-  secret: my-very-secret-jwt-key-that-should-be-long
-  expiration: 3600000  # 만료 시간 (1시간 = 3600000ms)
+    # JWT 설정 (보안 키와 만료 시간)
+    jwt:
+    secret: my-very-secret-jwt-key-that-should-be-long
+    expiration: 3600000  # 만료 시간 (1시간 = 3600000ms)
 
-# 알라딘 오픈 API 키 (외부 도서 데이터 수집용)
+    # 알라딘 오픈 API 키 (외부 도서 데이터 수집용)
 aladin:
   ttbkey: ttbsally1023p1354001
+
 
 #ML 서버 IP
 ml:
