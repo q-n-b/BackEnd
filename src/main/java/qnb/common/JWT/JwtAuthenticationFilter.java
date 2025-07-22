@@ -1,4 +1,4 @@
-package qnb.user.JWT;
+package qnb.common.JWT;
 
 //요청이 들어올 때 JWT(토큰)를 검사해서, 그 사용자가 "인증된 사용자"인지 판단하고,
 // 맞다면 Spring Security의 SecurityContext에 인증 정보를 등록해주는 필터

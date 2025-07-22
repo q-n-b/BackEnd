@@ -2,8 +2,8 @@ package qnb.common.config;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
-import qnb.user.JWT.JwtAuthenticationFilter;
-import qnb.user.JWT.JwtTokenProvider;
+import qnb.common.JWT.JwtAuthenticationFilter;
+import qnb.common.JWT.JwtTokenProvider;
 import qnb.user.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

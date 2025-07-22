@@ -3,7 +3,7 @@ package qnb.user.controller;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import qnb.common.dto.S3Uploader;
 import qnb.common.exception.*;
-import qnb.user.JWT.JwtTokenProvider;
+import qnb.common.JWT.JwtTokenProvider;
 import qnb.user.dto.*;
 import qnb.user.entity.RefreshToken;
 import qnb.user.entity.User;
@@ -95,7 +95,6 @@ public class UserController {
         ));
     }
 
-
     // 로그인 API
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDto request) {
@@ -184,5 +183,38 @@ public class UserController {
                     .body(Map.of("errorCode", "INTERNAL_SERVER_ERROR", "message", "계정 탈퇴 처리 중 서버 오류가 발생했습니다."));
         }
     }
+
+    //프로필 이미지 변경
+    @PutMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProfileImage(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                @RequestPart("profileImage") MultipartFile profileImage) {
+
+        User user = userDetails.getUser();
+
+        try {
+            User updatedUser = userService.updateProfileImage(user.getUserId(), profileImage);
+
+            return ResponseEntity.ok(Map.of(
+                    "data", Map.of(
+                            "userId", updatedUser.getUserId(),
+                            "nickname", updatedUser.getUserNickname(),
+                            "profileUrl", updatedUser.getProfileUrl()
+                    ),
+                    "message", "프로필 이미지가 변경되었습니다."
+            ));
+
+        } catch (InvalidImageFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "errorCode", "INVALID_IMAGE_FORMAT",
+                    "message", "이미지 파일이 없거나 지원되지 않는 형식입니다. (JPEG, PNG만 허용)"
+            ));
+        } catch (FileSizeExceededException e) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of(
+                    "errorCode", "FILE_TOO_LARGE",
+                    "message", "이미지 파일의 크기가 너무 큽니다. 최대 5MB까지 업로드 가능합니다."
+            ));
+        }
+    }
+
 
 }

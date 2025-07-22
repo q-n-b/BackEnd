@@ -209,4 +209,23 @@ public class GlobalExceptionHandler {
                 .body(Map.of("TARGET_NOT_FOUND", ex.getMessage()));
     }
 
+    //지원되지 않는 이미지 포맷일 때
+    @ExceptionHandler(InvalidImageFormatException.class)
+    public ResponseEntity<?> handleInvalidImageFormat(InvalidImageFormatException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "errorCode", "INVALID_IMAGE_FORMAT",
+                        "message", ex.getMessage()
+                ));
+    }
+
+    //이미지 파일 크기가 너무 클 떄
+    @ExceptionHandler(FileSizeExceededException.class)
+    public ResponseEntity<?> handleFileSizeExceeded(FileSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(Map.of(
+                        "errorCode", "FILE_TOO_LARGE",
+                        "message", ex.getMessage()
+                ));
+    }
 }
