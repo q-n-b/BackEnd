@@ -34,7 +34,7 @@ spring:
     secret: my-very-secret-jwt-key-that-should-be-long
     expiration: 3600000  # 만료 시간 (1시간 = 3600000ms)
 
-    # 알라딘 오픈 API 키 (외부 도서 데이터 수집용)
+# 알라딘 오픈 API 키 (외부 도서 데이터 수집용)
 aladin:
   ttbkey: ttbsally1023p1354001
 
@@ -43,4 +43,15 @@ aladin:
 ml:
     server:
       url: http://<ML 서버 IP>:5000
+
+#S3
+cloud:
+  aws:
+    credentials:
+      access-key: AKIASDRANPYT7VBWZH4O
+      secret-key: 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
+    region:
+      static: ap-southeast-2
+    s3:
+      bucket: qnb-profile-images
 

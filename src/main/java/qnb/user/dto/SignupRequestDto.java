@@ -35,7 +35,7 @@ public class SignupRequestDto {
     @NotBlank
     private String phoneNumber;
 
-    private String profileUrl; //서버에서 주입 예정
+    private String profileUrl;
 }
 
 

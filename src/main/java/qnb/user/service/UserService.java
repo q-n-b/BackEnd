@@ -1,7 +1,7 @@
 package qnb.user.service;
 
 import jakarta.transaction.Transactional;
-import org.apache.coyote.BadRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
 import qnb.answer.repository.AnswerRepository;
 import qnb.common.exception.LoginRequiredException;
 import qnb.common.exception.PasswordMismatchException;
@@ -9,7 +9,6 @@ import qnb.question.repository.QuestionRepository;
 import qnb.user.dto.SignupRequestDto;
 import qnb.user.dto.UserInfoResponseDto;
 import qnb.user.entity.User;
-import qnb.user.entity.UserPreference;
 import qnb.user.repository.UserPreferenceRepository;
 import qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,7 @@ public class UserService {
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
 
-
+    //회원가입
     public User registerUser(SignupRequestDto request) {
         User user = new User();
         user.setUserEmail(request.getUserEmail());
@@ -43,6 +42,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    //내 정보 조회
     public UserInfoResponseDto getMyInfo(User user) {
         User foundUser = userRepository.findById(user.getUserId())
                 .orElseThrow(UserNotFoundException::new);

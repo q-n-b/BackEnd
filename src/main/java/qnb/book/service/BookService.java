@@ -54,7 +54,7 @@ public class BookService {
     //userId를 기준으로 추천 도서 1권을 받아오는 서비스 메소드.
     public SingleRecommendedBookResponseDto getSingleRecommendedBook(Long userId) {
 
-        // ✅ 사용자 선호 정보 조회 (User 객체를 얻기 위함)
+        // 사용자 선호 정보 조회 (User 객체를 얻기 위함)
         UserPreference userPreference = userPreferenceRepository.findByUser_UserId(userId)
                 .orElseThrow(UserNotFoundException::new);
 

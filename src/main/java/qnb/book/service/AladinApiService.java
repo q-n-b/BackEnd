@@ -28,11 +28,11 @@ public class AladinApiService {
 
     public void fetchAllCategories() {
         List<Category> categories = List.of(
-                //new Category("한국소설", 50993)
-                new Category("과학소설", 89505)
-                //new Category("로맨스", 103706),
-                //new Category("자기계발", 70216)
-                //new Category("에세이", 50760)
+                new Category("한국소설", 50993),
+                new Category("과학소설", 89505),
+                new Category("로맨스소설", 103706),
+                new Category("자기계발", 70216),
+                new Category("에세이", 50760)
         );
 
         for (Category category : categories) {

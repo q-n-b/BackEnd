@@ -1,6 +1,7 @@
 package qnb.user.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import qnb.common.dto.S3Uploader;
 import qnb.common.exception.*;
 import qnb.user.JWT.JwtTokenProvider;
 import qnb.user.dto.*;
@@ -19,11 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -35,6 +34,7 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final S3Uploader s3Uploader;
 
     // 회원가입 API
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -63,19 +63,16 @@ public class UserController {
             throw new MissingFieldException();
         }
 
-        // 5. 프로필 이미지 저장 처리
+        // 5. 프로필 이미지 → S3 업로드
         String profileUrl = null;
         try {
             if (profileImage != null && !profileImage.isEmpty()) {
-                String fileName = UUID.randomUUID() + "_" + profileImage.getOriginalFilename();
-                String savePath = "/your/save/path/" + fileName;
-                profileImage.transferTo(new File(savePath));
-                profileUrl = "/images/" + fileName;
+                profileUrl = s3Uploader.upload(profileImage, "profiles");
             }
-            request.setProfileUrl(profileUrl);
+            request.setProfileUrl(profileUrl); // 프로필 URL 주입
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    Map.of("errorCode", "IMAGE_SAVE_FAILED", "errorMessage", "프로필 이미지 저장 중 오류가 발생했습니다.")
+                    Map.of("errorCode", "IMAGE_UPLOAD_FAILED", "errorMessage", "프로필 이미지 업로드 중 오류가 발생했습니다.")
             );
         }
 
@@ -97,6 +94,7 @@ public class UserController {
                 "refreshToken", refreshToken
         ));
     }
+
 
     // 로그인 API
     @PostMapping("/login")
