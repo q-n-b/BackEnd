@@ -127,7 +127,7 @@ public class BookService {
                 .map(BookResponseDto::new);
     }
 
-    //상세 조회 메소드
+    // 4. 도서 상세 조회 메소드
     public BookDetailResponseDto getBookDetail(Integer bookId, User user) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
@@ -143,13 +143,13 @@ public class BookService {
 
             if (wishRepository.existsByUser_UserIdAndBook_BookId(userId, bId)) {
                 isScrapped = true;
-                scrapStatus = "wish";
+                scrapStatus = "WISH";
             } else if (readingRepository.existsByUser_UserIdAndBook_BookId(userId, bId)) {
                 isScrapped = true;
-                scrapStatus = "reading";
+                scrapStatus = "READING";
             } else if (readRepository.existsByUser_UserIdAndBook_BookId(userId, bId)) {
                 isScrapped = true;
-                scrapStatus = "read";
+                scrapStatus = "READ";
             }
         }
 
