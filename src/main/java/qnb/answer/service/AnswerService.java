@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AnswerService {
@@ -36,12 +38,11 @@ public class AnswerService {
                 .orElseThrow(UserNotFoundException::new);
 
         // 답변 생성
-        Answer answer = Answer.builder()
-                .question(question)
-                .user(user)
-                .answerContent(dto.getAnswerContent())
-                .answerState(dto.getAnswerState())
-                .build();
+        Answer answer = new Answer();
+        answer.setQuestion(question);
+        answer.setUser(user);
+        answer.setAnswerContent(dto.getAnswerContent());
+        answer.setAnswerState(dto.getAnswerState());
 
         // 저장
         Answer saved = answerRepository.save(answer);

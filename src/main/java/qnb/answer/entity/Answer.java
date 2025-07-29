@@ -49,11 +49,12 @@ public class Answer {
     private List<UserAnswerLike> likes = new ArrayList<>();
 
     @Builder
-    public Answer(Question question, User user, String answerContent, String answerState) {
+    public Answer(Question question, User user, String answerContent, String answerState, LocalDateTime createdAt) {
         this.question = question;
         this.user = user;
         this.answerContent = answerContent;
         this.answerState = answerState;
+        this.createdAt = createdAt;
     }
 
     public void increaseLikeCount() {
