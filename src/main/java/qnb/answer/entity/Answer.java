@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.annotation.CreatedDate;
 import qnb.like.entity.UserAnswerLike;
 import qnb.question.entity.Question;
 import qnb.user.entity.User;
@@ -38,6 +39,7 @@ public class Answer {
     @Column(name = "like_count", nullable = false)
     private int likeCount = 0;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
