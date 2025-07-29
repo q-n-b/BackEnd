@@ -1,7 +1,7 @@
 package qnb.user.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 import qnb.answer.repository.AnswerRepository;
 import qnb.common.exception.*;
@@ -14,8 +14,10 @@ import qnb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
@@ -30,6 +32,15 @@ public class UserService {
     private final UserPreferenceRepository userPreferenceRepository;
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+
+    private final S3Client s3Client;
+
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
+
+    @Value("${cloud.aws.region.static}")
+    private String region;
+
 
     //회원가입
     public User registerUser(SignupRequestDto request) {
@@ -111,31 +122,28 @@ public class UserService {
                 .orElseThrow(LoginRequiredException::new);
 
         try {
-            String fileName = UUID.randomUUID() + "_" + profileImage.getOriginalFilename();
+            // S3에 저장할 파일 이름
+            String fileName = "user/profile/" + UUID.randomUUID() + "_" + profileImage.getOriginalFilename();
 
-            // 실제 저장 경로 설정 (맥북 기준 홈 디렉토리)
-            String saveDir = System.getProperty("user.home") + "/profile-images/";  // 예: /Users/yourname/profile-images/
+            // S3에 업로드 요청
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(fileName)
+                            .contentType(contentType)
+                            .build(),
+                    RequestBody.fromInputStream(profileImage.getInputStream(), profileImage.getSize())
+            );
 
-            // 디렉터리 존재하지 않으면 생성
-            File directory = new File(saveDir);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
-
-            // 저장 경로에 파일 생성
-            String savePath = saveDir + fileName;
-            profileImage.transferTo(new File(savePath));
-
-            // DB에 저장할 URL 경로 (프론트에서 불러올 경로 기준)
-            String profileUrl = "/images/" + fileName;  // 실제로는 정적 리소스 서빙이 필요함
+            // S3 URL 생성 (https://)
+            String profileUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + fileName;
 
             user.setProfileUrl(profileUrl);
             return userRepository.save(user);
 
         } catch (IOException e) {
-            throw new RuntimeException("이미지 저장 실패", e);
+            throw new RuntimeException("S3 업로드 실패", e);
         }
-
     }
 
 }
