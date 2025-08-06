@@ -1,5 +1,6 @@
 package qnb.user.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import qnb.common.exception.LoginRequiredException;
 import qnb.user.dto.UserPreferenceRequestDto;
 import qnb.user.security.UserDetailsImpl;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users/preferences")
 @RequiredArgsConstructor
@@ -23,6 +25,8 @@ public class UserPreferenceController {
     @PostMapping
     public ResponseEntity<?> save(@RequestBody @Valid UserPreferenceRequestDto dto,
                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        log.info("🎯 설문 데이터 수신: {}", dto.getPreferredBookId());
 
         if (userDetails == null) {
             throw new LoginRequiredException(); // 전역 핸들러에서 401 응답
