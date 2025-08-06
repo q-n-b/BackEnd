@@ -1,5 +1,6 @@
 package qnb.answer.service;
 
+import lombok.extern.slf4j.Slf4j;
 import qnb.answer.dto.AnswerRequestDto;
 import qnb.answer.dto.AnswerResponseDto;
 import qnb.answer.entity.Answer;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AnswerService {
@@ -44,8 +46,14 @@ public class AnswerService {
         answer.setAnswerContent(dto.getAnswerContent());
         answer.setAnswerState(dto.getAnswerState());
 
+        // 로그 추가
+        log.info("answer createdAt BEFORE save: {}", answer.getCreatedAt());
+
         // 저장
         Answer saved = answerRepository.save(answer);
+
+        // 로그 추가
+        log.info("answer createdAt AFTER save: {}", saved.getCreatedAt());
 
         // 질문의 답변 수 증가
         question.setAnswerCount(question.getAnswerCount() + 1);

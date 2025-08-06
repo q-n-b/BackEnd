@@ -69,7 +69,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://3.106.121.75:3000",
+                "http://54.79.181.136:3000",
                 "http://192.168.0.109:3000",
                 "http://192.168.0.17:3000",
 
