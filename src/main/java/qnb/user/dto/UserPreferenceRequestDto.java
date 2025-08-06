@@ -1,5 +1,6 @@
 package qnb.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,5 +20,6 @@ public class UserPreferenceRequestDto {
 
     private List<String> preferredKeywords;//키워드, 복수선택
 
+    @JsonProperty("favoriteBooks")
     private List<Integer> preferredBookId; //좋았던 책, 복수선택
 }
