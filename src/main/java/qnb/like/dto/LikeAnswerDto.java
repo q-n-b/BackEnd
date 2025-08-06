@@ -36,6 +36,10 @@ public class LikeAnswerDto {
         return isLiked;
     }
 
+    // 디폴트 프로필 이미지 S3 URL
+    private static final String DEFAULT_PROFILE_URL =
+            "https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg";
+
     public static LikeAnswerDto from(
             Answer answer,
             boolean isLiked
@@ -47,12 +51,18 @@ public class LikeAnswerDto {
                 .likeCount(answer.getLikeCount())
                 .userId(answer.getUser() != null ? answer.getUser().getUserId() : null)
                 .userNickname(answer.getUser() != null ? answer.getUser().getUserNickname() : null)
-                .profileUrl(answer.getUser() != null ? answer.getUser().getProfileUrl() : null)
+                // profileUrl이 null 또는 빈 문자열이면 디폴트 이미지 적용
+                .profileUrl(
+                        (answer.getUser() != null && answer.getUser().getProfileUrl() != null && !answer.getUser().getProfileUrl().isEmpty())
+                                ? answer.getUser().getProfileUrl()
+                                : DEFAULT_PROFILE_URL
+                )
                 .isLiked(isLiked)
                 .createdAt(answer.getCreatedAt())
-                .book(answer.getQuestion() != null && answer.getQuestion().getBook() != null ? BookSimpleDto.from(answer.getQuestion().getBook()) : null)
-                .question(answer.getQuestion() != null ? QuestionSimpleDto.from(answer.getQuestion()) : null)
+                .book(answer.getQuestion() != null && answer.getQuestion().getBook() != null
+                        ? BookSimpleDto.from(answer.getQuestion().getBook()) : null)
+                .question(answer.getQuestion() != null
+                        ? QuestionSimpleDto.from(answer.getQuestion()) : null)
                 .build();
     }
-
 }

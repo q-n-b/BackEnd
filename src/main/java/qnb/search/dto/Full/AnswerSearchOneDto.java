@@ -19,4 +19,14 @@ public class AnswerSearchOneDto {
     private String userNickname;
     private String profileUrl;
     private String answerState;
+
+    // 디폴트 프로필 이미지 S3 URL
+    private static final String DEFAULT_PROFILE_URL =
+            "https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg";
+
+    public void setProfileUrl(String profileUrl) {
+        this.profileUrl = (profileUrl != null && !profileUrl.isEmpty())
+                ? profileUrl
+                : DEFAULT_PROFILE_URL;
+    }
 }

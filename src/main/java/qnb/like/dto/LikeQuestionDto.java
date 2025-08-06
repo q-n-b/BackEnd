@@ -44,6 +44,10 @@ public class LikeQuestionDto {
     private LocalDateTime createdAt;
     private BookSimpleDto book;
 
+    // 디폴트 프로필 이미지 S3 URL
+    private static final String DEFAULT_PROFILE_URL =
+            "https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg";
+
     public static LikeQuestionDto from(
             Question q,
             boolean isScrapped,
@@ -57,12 +61,16 @@ public class LikeQuestionDto {
                 .answerCount(q.getAnswerCount())
                 .userId(q.getUser() != null ? q.getUser().getUserId() : null)
                 .userNickname(q.getUser() != null ? q.getUser().getUserNickname() : null)
-                .profileUrl(q.getUser() != null ? q.getUser().getProfileUrl() : null)
+                // profileUrl이 null 또는 빈 문자열이면 디폴트 이미지 적용
+                .profileUrl(
+                        (q.getUser() != null && q.getUser().getProfileUrl() != null && !q.getUser().getProfileUrl().isEmpty())
+                                ? q.getUser().getProfileUrl()
+                                : DEFAULT_PROFILE_URL
+                )
                 .isScrapped(isScrapped)
                 .isLiked(isLiked)
                 .createdAt(q.getCreatedAt())
                 .book(q.getBook() != null ? BookSimpleDto.from(q.getBook()) : null)
                 .build();
     }
-
 }

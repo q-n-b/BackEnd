@@ -28,13 +28,23 @@ public class UserQnaResponseDto {
     private LocalDateTime createdAt;
     private String type; // "QUESTION" 또는 "ANSWER"
 
+    // 디폴트 프로필 이미지 S3 URL
+    private static final String DEFAULT_PROFILE_URL =
+            "https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg";
+
     public static UserQnaResponseDto fromQuestion(Question question, List<Answer> answers) {
         return UserQnaResponseDto.builder()
                 .questionId(Long.valueOf(question.getQuestionId()))
                 .book(BookResponseDto.from(question.getBook()))
                 .userId(question.getUser().getUserId())
                 .userNickname(question.getUser().getUserNickname())
-                .profileUrl(question.getUser().getProfileUrl())
+
+                // profileUrl이 null이면 디폴트 이미지 사용
+                .profileUrl(
+                        question.getUser().getProfileUrl() != null
+                                ? question.getUser().getProfileUrl()
+                                : DEFAULT_PROFILE_URL
+                )
                 .questionContent(question.getQuestionContent())
                 .answers(answers.stream().map(AnswerSimpleDto::from).toList())
                 .createdAt(question.getCreatedAt())
@@ -43,6 +53,8 @@ public class UserQnaResponseDto {
     }
 
     public static UserQnaResponseDto fromAnswer(Question question, List<Answer> answers) {
-        return fromQuestion(question, answers).toBuilder().type("ANSWER").build();
+        return fromQuestion(question, answers).toBuilder()
+                .type("ANSWER")
+                .build();
     }
 }

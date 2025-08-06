@@ -1,3 +1,4 @@
+/*
 package qnb.user.dto;
 
 public class LoginResponseDto {
@@ -11,3 +12,4 @@ public class LoginResponseDto {
         return accessToken;
     }
 }
+*/
