@@ -1,5 +1,6 @@
 package qnb.user.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import qnb.common.dto.S3Uploader;
 import qnb.common.exception.*;
@@ -215,6 +216,50 @@ public class UserController {
             ));
         }
     }
+
+    //프로필 이미지 삭제
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<?> deleteProfileImage(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Value("${qnb.profile.default-url}") String defaultProfileUrl) {
+
+        User user = userDetails.getUser();
+
+        // 이미 기본 이미지인 경우
+        if (user.getProfileUrl() == null || defaultProfileUrl.equals(user.getProfileUrl())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "errorCode", "PROFILE_IMAGE_NOT_FOUND",
+                    "message", "삭제할 프로필 이미지가 존재하지 않습니다."
+            ));
+        }
+
+        try {
+            // 1. 기존 이미지 S3에서 삭제
+            s3Uploader.delete(user.getProfileUrl());
+
+            // 2. DB에서 프로필 URL을 기본 이미지로 변경
+            user.setProfileUrl(defaultProfileUrl);
+            userRepository.save(user);
+
+            // 3. 성공 응답 반환
+            return ResponseEntity.ok(Map.of(
+                    "data", Map.of(
+                            "userId", user.getUserId(),
+                            "nickname", user.getUserNickname(),
+                            "profileUrl", defaultProfileUrl
+                    ),
+                    "message", "프로필 이미지가 삭제되어 기본 이미지로 변경되었습니다."
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "errorCode", "PROFILE_DELETE_FAILED",
+                    "message", "프로필 이미지 삭제 중 오류가 발생했습니다."
+            ));
+        }
+    }
+
+
 
 
 }

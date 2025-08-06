@@ -228,4 +228,25 @@ public class GlobalExceptionHandler {
                         "message", ex.getMessage()
                 ));
     }
+
+    //프로필 이미지 삭제 시 삭제할 프로필이 없을 때
+    @ExceptionHandler(ProfileImageNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleProfileImageNotFound(ProfileImageNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "errorCode", "PROFILE_IMAGE_NOT_FOUND",
+                        "message", ex.getMessage()
+                ));
+    }
+
+    //프로필 이미지 삭제시 서버 에러
+    @ExceptionHandler(ProfileDeleteFailedException.class)
+    public ResponseEntity<Map<String, String>> handleProfileDeleteFailed(ProfileDeleteFailedException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "errorCode", "PROFILE_DELETE_FAILED",
+                        "message", ex.getMessage()
+                ));
+    }
+
 }

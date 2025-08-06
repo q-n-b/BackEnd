@@ -41,6 +41,9 @@ public class UserService {
     @Value("${cloud.aws.region.static}")
     private String region;
 
+    @Value("${qnb.profile.default-url}")
+    private String defaultProfileUrl;
+
 
     //회원가입
     public User registerUser(SignupRequestDto request) {
@@ -146,4 +149,29 @@ public class UserService {
         }
     }
 
+    //프로필 이미지 삭제
+    @Transactional
+    public User deleteProfileImage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(LoginRequiredException::new);
+
+        // 이미 기본 이미지면 예외
+        if (user.getProfileUrl() == null || defaultProfileUrl.equals(user.getProfileUrl())) {
+            throw new ProfileImageNotFoundException();
+        }
+
+        // S3에서 기존 이미지 삭제
+        try {
+            String fileUrl = user.getProfileUrl();
+            String key = fileUrl.substring(fileUrl.indexOf(bucket) + bucket.length() + 5);
+            // "bucket.s3." 이후 경로 추출
+            s3Client.deleteObject(builder -> builder.bucket(bucket).key(key).build());
+        } catch (Exception e) {
+            throw new ProfileDeleteFailedException();
+        }
+
+        // DB 업데이트 (기본 이미지로 변경)
+        user.setProfileUrl(defaultProfileUrl);
+        return userRepository.save(user);
+    }
 }

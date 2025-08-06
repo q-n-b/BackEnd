@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
@@ -24,6 +24,7 @@ public class S3Uploader {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    //이미지 업로드
     public String upload(MultipartFile file, String dirName) throws IOException {
         String fileName = dirName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
@@ -47,7 +48,25 @@ public class S3Uploader {
         return getFileUrl(fileName);
     }
 
+    //파일 URL 조회
     private String getFileUrl(String fileName) {
         return "https://" + bucket + ".s3.ap-southeast-2.amazonaws.com/" + fileName;
     }
+
+    //프로필 삭제
+    public void delete(String fileUrl) {
+        if (fileUrl == null || fileUrl.isEmpty()) return;
+
+        // S3 Key 추출
+        // ex) https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/user/profile/uuid_img.png
+        // -> key = user/profile/uuid_img.png
+        String key = fileUrl.substring(fileUrl.indexOf(".com/") + 5);
+
+        // 삭제 요청
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build());
+    }
+
 }

@@ -55,3 +55,7 @@ cloud:
     s3:
       bucket: qnb-profile-images
 
+qnb:
+  profile:
+    default-url: https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg
+
