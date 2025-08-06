@@ -32,8 +32,6 @@ public class UserFavoriteService {
     private final UserQuestionScrapRepository userQuestionScrapRepository;
     private final UserAnswerLikeRepository userAnswerLikeRepository;
 
-
-
     public Object getFavorites(Long userId, String type, String target, Pageable pageable) {
 
         // SCRAP 조회

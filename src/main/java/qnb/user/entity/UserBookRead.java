@@ -26,5 +26,9 @@ public class UserBookRead {
     @JoinColumn(name = "book_id")
     private Book book;
 
+    //설문조사/ 실제 읽은 책인지 구분
+    @Column(nullable = false)
+    private String source; // SURVEY or READ
+
     private LocalDateTime createdAt;
 }
