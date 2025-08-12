@@ -8,6 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RecommendationResponseDto {
     private Long bookId;
-    private String reason;   // 예: "search", "like" 등
     private String keyword;  // 예: "아포칼립스"
 }

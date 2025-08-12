@@ -14,15 +14,14 @@ public class SingleRecommendedBookResponseDto {
     private BookResponseDto book;
     private RecommendationInfo recommendation;
 
-    public SingleRecommendedBookResponseDto(Book book, String reason, String keyword) {
+    public SingleRecommendedBookResponseDto(Book book, String keyword) {
         this.book = new BookResponseDto(book);  // 기존 DTO 활용
-        this.recommendation = new RecommendationInfo(reason, keyword);
+        this.recommendation = new RecommendationInfo(keyword);
     }
 
     @Data
     @AllArgsConstructor
     public static class RecommendationInfo {
-        private String reason;   //  question/answer/search/scrap/like
         private String keyword;  // ex: "아포칼립스"
     }
 }

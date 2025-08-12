@@ -1,6 +1,7 @@
 package qnb.user.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import qnb.common.dto.S3Uploader;
 import qnb.common.exception.*;
@@ -8,6 +9,7 @@ import qnb.common.JWT.JwtTokenProvider;
 import qnb.user.dto.*;
 import qnb.user.entity.RefreshToken;
 import qnb.user.entity.User;
+import qnb.user.event.UserBookReadAddedEvent;
 import qnb.user.repository.RefreshTokenRepository;
 import qnb.user.repository.UserRepository;
 import qnb.user.security.UserDetailsImpl;
@@ -36,6 +38,7 @@ public class UserController {
     private final UserService userService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final S3Uploader s3Uploader;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 회원가입 API
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -259,7 +262,19 @@ public class UserController {
         }
     }
 
+    // 수동 벡터 재생성 요청
+    @PostMapping("/{userId}/generate-vector")
+    public ResponseEntity<?> regenerateUserVector(@PathVariable Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException();
+        }
 
+        // 이벤트 발행 → AFTER_COMMIT 리스너에서 ML 호출
+        eventPublisher.publishEvent(new UserBookReadAddedEvent(userId));
 
-
+        return ResponseEntity.ok(Map.of(
+                "message", "유저 벡터 재생성 요청이 전송되었습니다.",
+                "userId", userId
+        ));
+    }
 }

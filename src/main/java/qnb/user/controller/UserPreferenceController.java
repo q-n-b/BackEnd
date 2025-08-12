@@ -26,8 +26,6 @@ public class UserPreferenceController {
     public ResponseEntity<?> save(@RequestBody @Valid UserPreferenceRequestDto dto,
                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        log.info("🎯 설문 데이터 수신: {}", dto.getPreferredBookId());
-
         if (userDetails == null) {
             throw new LoginRequiredException(); // 전역 핸들러에서 401 응답
         }

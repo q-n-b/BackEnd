@@ -17,6 +17,8 @@ import qnb.user.repository.UserBookReadRepository;
 import qnb.user.repository.UserBookReadingRepository;
 import qnb.common.exception.BookNotFoundException;
 import qnb.user.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
+import qnb.user.event.UserBookReadAddedEvent;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -31,9 +33,12 @@ public class BookScrapService {
     private final UserBookReadingRepository userBookReadingRepository;
     private final UserBookReadRepository userBookReadRepository;
 
+    private final ApplicationEventPublisher eventPublisher;
+
+
     @Transactional
     public BookScrapResponseDto toggleScrap(Integer bookId, Long userId, String status) {
-        status = status.toUpperCase();  // 👈 대문자로 변환
+        status = status.toUpperCase();
 
         if (!Set.of("WISH", "READING", "READ").contains(status)) {
             throw new InvalidStatusException();
@@ -47,12 +52,12 @@ public class BookScrapService {
         // 현재 상태 확인
         boolean isWish = userBookWishRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
         boolean isReading = userBookReadingRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
-        boolean isRead = userBookReadRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
+        boolean isReadBefore = userBookReadRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
 
-        // 동일 상태로 이미 등록되어 있다면 삭제(=토글 해제)
+        // 동일 상태면 토글 해제
         if ((status.equals("WISH") && isWish) ||
                 (status.equals("READING") && isReading) ||
-                (status.equals("READ") && isRead)) {
+                (status.equals("READ") && isReadBefore)) {
 
             deleteScrapStatus(userId, bookId);
             return BookScrapResponseDto.builder()
@@ -62,20 +67,36 @@ public class BookScrapService {
                     .build();
         }
 
-        // 기존 상태 제거 (중복 등록 방지)
+        // 기존 상태 제거
         deleteScrapStatus(userId, bookId);
+
+        boolean readInsertedThisTx = false; // 이번 호출에서 READ가 새로 추가됐는지
 
         // 새로운 상태 등록
         switch (status) {
             case "WISH" -> userBookWishRepository.save(
-                    UserBookWish.builder().user(user).book(book).createdAt(LocalDateTime.now()).build()
+                    UserBookWish.builder().user(user).book(book).
+                            createdAt(LocalDateTime.now()).build()
             );
             case "READING" -> userBookReadingRepository.save(
-                    UserBookReading.builder().user(user).book(book).createdAt(LocalDateTime.now()).build()
+                    UserBookReading.builder().user(user).book(book).
+                            createdAt(LocalDateTime.now()).build()
             );
-            case "READ" -> userBookReadRepository.save(
-                    UserBookRead.builder().user(user).book(book).createdAt(LocalDateTime.now()).build()
-            );
+            case "READ" -> {
+                // 동시요청 대비 한 번 더 확인
+                if (!userBookReadRepository.existsByUser_UserIdAndBook_BookId(userId, bookId)) {
+                    userBookReadRepository.save(
+                            UserBookRead.builder().user(user).book(book).
+                                    createdAt(LocalDateTime.now()).build()
+                    );
+                    readInsertedThisTx = true;
+                }
+            }
+        }
+
+        // READ가 "신규"로 들어간 경우에만 이벤트 발행 (커밋 후 비동기 처리됨)
+        if ("READ".equals(status) && readInsertedThisTx && !isReadBefore) {
+            eventPublisher.publishEvent(new UserBookReadAddedEvent(userId));
         }
 
         return BookScrapResponseDto.builder()
@@ -84,7 +105,6 @@ public class BookScrapService {
                 .message("도서 스크랩 상태가 저장되었습니다.")
                 .build();
     }
-
 
     private void deleteScrapStatus(Long userId, Integer bookId) {
         userBookWishRepository.deleteByUser_UserIdAndBook_BookId(userId, bookId);
@@ -118,6 +138,4 @@ public class BookScrapService {
         // 삭제
         deleteScrapStatus(userId, bookId);
     }
-
-
 }

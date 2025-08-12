@@ -1,11 +1,15 @@
 package qnb.book.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import qnb.user.entity.User;
 
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
+@Builder
 @Entity
 @Data
 @Table(name = "user_recommended_book")
@@ -25,8 +29,7 @@ public class UserRecommendedBook {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    private String reason;   // 추천 이유 (예: question, search)
-    private String keyword;  // 추천 키워드 (예: 아포칼립스)
+    private String keyword;  // 추천 키워드
 
     @Column(name = "recommended_at")
     private LocalDateTime recommendedAt;
@@ -34,12 +37,10 @@ public class UserRecommendedBook {
     protected UserRecommendedBook() {
     }
 
-    public UserRecommendedBook(User user, Book book, String reason, String keyword) {
+    public UserRecommendedBook(User user, Book book, String keyword) {
         this.user = user;
         this.book = book;
-        this.reason = reason;
         this.keyword = keyword;
         this.recommendedAt = LocalDateTime.now();
     }
-
 }

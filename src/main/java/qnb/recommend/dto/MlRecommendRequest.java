@@ -1,0 +1,32 @@
+package qnb.recommend.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class MlRecommendRequest {
+    @NotNull
+    private Long userId;
+
+    @Data @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class Filters {
+        private Boolean excludeRead; // 기본 true는 컨트롤러에서 보정
+    }
+    private Filters filters;
+
+    @Data @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class Context {
+        private List<String> preferredGenres;
+        private List<Long> recentBookIds;
+    }
+    private Context context;
+}
+

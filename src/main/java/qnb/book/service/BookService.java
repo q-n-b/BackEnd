@@ -1,9 +1,7 @@
 package qnb.book.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-import qnb.answer.entity.Answer;
+import org.springframework.jdbc.core.JdbcTemplate;
 import qnb.answer.repository.AnswerRepository;
 import qnb.book.dto.*;
 import qnb.book.entity.Book;
@@ -21,14 +19,21 @@ import qnb.common.exception.BookNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import qnb.question.service.QuestionService;
+import org.springframework.transaction.annotation.Transactional;
 import qnb.user.entity.User;
 import qnb.user.entity.UserPreference;
 import qnb.user.repository.*;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.sql.Date;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 @Service
 @RequiredArgsConstructor
@@ -44,63 +49,56 @@ public class BookService {
     private final UserBookReadingRepository readingRepository;
     private final UserBookReadRepository readRepository;
 
-    //도서 존재 여부 로직
     public boolean existsById(Integer bookId) {
-        return bookRepository.existsById(bookId);
+        return bookRepository.existsById(bookId.intValue());
     }
 
-    // 0. 개인 추천 도서 1권 조회 (추천 이유 포함)
-    //ML 추천 → DB에 저장 → 이후 이력 기반 응답
-    //userId를 기준으로 추천 도서 1권을 받아오는 서비스 메소드.
-    public SingleRecommendedBookResponseDto getSingleRecommendedBook(Long userId) {
+    // 주간 확정 테이블 접근용 (새 레포지토리 안 만들고 JdbcTemplate 활용)
+    private final JdbcTemplate jdbcTemplate;
 
-        // 사용자 선호 정보 조회 (User 객체를 얻기 위함)
-        UserPreference userPreference = userPreferenceRepository.findByUser_UserId(userId)
-                .orElseThrow(UserNotFoundException::new);
-
-        User user = userPreference.getUser();
-
-        // ML 요청 및 저장 (현재는 주석 처리)
-    /*
-    RecommendationRequestDto requestDto = new RecommendationRequestDto(
-            userId,
-            userPreference.getPreferredGenres(),
-            userPreference.getImportantFactor()
-    );
-
-    String mlUrl = "http://16.176.183.78:8080/api/books?type=recommendations&limit=1&userId=" + userId;
-
-    RestTemplate restTemplate = new RestTemplate();
-    ResponseEntity<RecommendationResponseDto> response = restTemplate.getForEntity(
-            mlUrl, RecommendationResponseDto.class
-    );
-
-    RecommendationResponseDto data = response.getBody();
-    Book book = bookRepository.findById(data.getBookId().intValue())
-            .orElseThrow(BookNotFoundException::new);
-
-    UserRecommendedBook rec = new UserRecommendedBook(
-            user,
-            book,
-            data.getReason(),
-            data.getKeyword()
-    );
-    recommendedBookRepository.save(rec);
-    */
-
-        // DB에 저장된 추천 도서 중 최근 1개 가져오기
-        UserRecommendedBook rec = recommendedBookRepository.findTopByUser_UserIdOrderByRecommendedAtDesc(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 추천 도서가 존재하지 않습니다."));
-
-        Book book = rec.getBook();
-        String reason = rec.getReason();
-        String keyword = rec.getKeyword();
-
-        return new SingleRecommendedBookResponseDto(book, reason, keyword);
+    private LocalDate thisMondayKST() {
+        return LocalDate.now(ZoneId.of("Asia/Seoul"))
+                .with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
 
+    @Transactional(readOnly = true)
+    public SingleRecommendedBookResponseDto getOneRecommendedBook(Long userId) {
+        // 1) 이번 주 확정(weekly) 먼저 시도
+        LocalDate weekStart = thisMondayKST();
+        Integer weeklyBookId = jdbcTemplate.query(
+                """
+                SELECT book_id
+                FROM user_weekly_featured_book
+                WHERE user_id = ? AND week_start = ?
+                """,
+                ps -> { ps.setLong(1, userId);
+                    ps.setDate(2, Date.valueOf(weekStart));
+                    },
+                rs -> rs.next() ? rs.getInt("book_id") : null
+        );
 
-    // 1. 개인 추천 도서 리스트 조회
+        if (weeklyBookId != null) {
+            Book book = bookRepository.findById(weeklyBookId)
+                    .orElseThrow(BookNotFoundException::new);
+
+            // 같은 유저 + 같은 책의 추천 기록 중 최신 1개를 찾아 keyword 가져오기
+            String keyword = recommendedBookRepository
+                    .findTopByUser_UserIdAndBook_BookIdOrderByRecommendedAtDesc(userId, weeklyBookId)
+                    .map(UserRecommendedBook::getKeyword)
+                    .orElse(null);
+
+            return new SingleRecommendedBookResponseDto(book, keyword);
+        }
+
+        // 2) 주간 확정이 없으면 최신 1개(추천 풀)로 폴백
+        UserRecommendedBook rec = recommendedBookRepository
+                .findTopByUser_UserIdOrderByRecommendedAtDesc(userId)
+                .orElseThrow(() -> new IllegalArgumentException("추천 도서가 없습니다."));
+
+        return new SingleRecommendedBookResponseDto(rec.getBook(), rec.getKeyword());
+    }
+
+    // 개인 추천 도서 리스트 조회
     public List<BookResponseDto> getRecommendedBooks(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -113,7 +111,7 @@ public class BookService {
     }
 
 
-    // 2. 장르별 추천 도서 리스트 조회
+    //  장르별 추천 도서 리스트 조회
     public List<BookResponseDto> getRecommendedBooksByGenre(String genre) {
         List<UserRecommendedBook> list = recommendedBookRepository.findByBookGenre(genre);
         return list.stream()
@@ -121,13 +119,13 @@ public class BookService {
                 .toList();
     }
 
-    // 3. 신간 도서 리스트 조회 (출간일 내림차순)
+    // 신간 도서 리스트 조회 (출간일 내림차순)
     public Page<BookResponseDto> getNewBooks(Pageable pageable) {
         return bookRepository.findAllByOrderByPublishedYearDesc(pageable)
                 .map(BookResponseDto::new);
     }
 
-    // 4. 도서 상세 조회 메소드
+    // 도서 상세 조회 메소드
     public BookDetailResponseDto getBookDetail(Integer bookId, User user) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
@@ -157,7 +155,7 @@ public class BookService {
     }
 
 
-    // 5. 특정 도서의 질문 리스트 조회
+    // 특정 도서의 질문 리스트 조회
     public QuestionListResponseDto getBookQuestions(Integer bookId, String sort, Pageable pageable) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(BookNotFoundException::new);

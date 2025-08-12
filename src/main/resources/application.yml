@@ -3,6 +3,10 @@ server:
   address: 0.0.0.0  # 외부에서도 접근 가능하도록 설정
 
 spring:
+  http:
+    client:
+      factory: jdk
+
   # 실제 사용하는 내 DB
   datasource:
     url: jdbc:mysql://qnb-database.cjqc84a84hgy.ap-southeast-2.rds.amazonaws.com:3306/qnb_database
@@ -38,11 +42,13 @@ spring:
 aladin:
   ttbkey: ttbsally1023p1354001
 
-
 #ML 서버 IP
 ml:
-    server:
-      url: http://<ML 서버 IP>:5000
+  server:
+    url: http://127.0.0.1:5000   # 같은 EC2에서 구동 시
+  timeouts:
+    connect-ms: 3000
+    read-ms: 5000
 
 #S3
 cloud:
@@ -55,6 +61,7 @@ cloud:
     s3:
       bucket: qnb-profile-images
 
+#S3 디폴트 프로필 URL
 qnb:
   profile:
     default-url: https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg

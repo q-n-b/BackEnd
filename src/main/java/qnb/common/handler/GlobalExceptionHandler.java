@@ -249,4 +249,13 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    //유효하지 않은 request일 때
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidRequest(InvalidRequestException e) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "errorCode", "INVALID_REQUEST",
+                "message", e.getMessage()
+        ));
+    }
+
 }
