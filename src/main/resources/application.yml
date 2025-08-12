@@ -1,11 +1,17 @@
 server:
   port: 8080  # 기본 포트, 프론트나 Postman에서 요청 시 이 포트로 요청
   address: 0.0.0.0  # 외부에서도 접근 가능하도록 설정
+  forward-headers-strategy: framework
 
 spring:
   http:
     client:
       factory: jdk
+  mvc:
+    dispatch-options-request: true
+    web:
+      resources:
+        add-mappings: true
 
   # 실제 사용하는 내 DB
   datasource:
@@ -14,8 +20,6 @@ spring:
     password: "Dang1216"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  mvc:
-    dispatch-options-request: true
 
   jpa:
     hibernate:
