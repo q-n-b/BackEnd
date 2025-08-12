@@ -1,6 +1,8 @@
 package qnb.common.handler;
 
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.reactive.resource.NoResourceFoundException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import qnb.common.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,19 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoResource(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("errorCode","NOT_FOUND","errorMessage","리소스를 찾을 수 없습니다."));
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<?> handleNoHandler(NoHandlerFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("errorCode","NOT_FOUND","errorMessage","요청 경로가 없습니다."));
+    }
+
 
     //이메일 형식 유효하지 않을 때
     @ExceptionHandler(InvalidEmailFormatException.class)
