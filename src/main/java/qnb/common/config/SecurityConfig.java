@@ -72,7 +72,7 @@ public class SecurityConfig {
                 "http://3.107.202.108:3000",
                 "http://192.168.0.109:3000",
                 "http://192.168.0.17:3000",
-                
+
                 "https://qnb.duckdns.org"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
