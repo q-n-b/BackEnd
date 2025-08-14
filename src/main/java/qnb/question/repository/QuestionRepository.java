@@ -13,6 +13,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     List<Question> findByUser_UserId(Long userId);
 
+    //최신순 정렬 시 GPT 우선 정렬
     @Query("""
     SELECT q FROM Question q
     WHERE q.book.bookId = :bookId
@@ -25,6 +26,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             Pageable pageable
     );
 
+    //좋아요 정렬 시 GPT 우선 정렬
     @Query("""
     SELECT q FROM Question q
     WHERE q.book.bookId = :bookId

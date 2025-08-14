@@ -264,13 +264,22 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    //유효하지 않은 request일 때
+    //추천 생성 중 오류 발생했을 때
     @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidRequest(InvalidRequestException e) {
+    public ResponseEntity<Map<String, String>> handleInvalidRequest(InternalErrorException e) {
         return ResponseEntity.badRequest().body(Map.of(
                 "errorCode", "INVALID_REQUEST",
                 "message", e.getMessage()
         ));
     }
 
+
+    //사용자가 추천 인덱스가 존재하지 않을 때
+    @ExceptionHandler(UserNotIndexedException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidRequest(UserNotIndexedException e) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "errorCode", "INVALID_REQUEST",
+                "message", e.getMessage()
+        ));
+    }
 }

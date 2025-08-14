@@ -9,10 +9,7 @@ import qnb.book.entity.Book;
 import qnb.book.entity.UserRecommendedBook;
 import qnb.book.repository.BookRepository;
 import qnb.book.repository.UserRecommendedBookRepository;
-import qnb.common.exception.BookNotFoundException;
-import qnb.common.exception.InvalidRequestException;
-import qnb.common.exception.UnauthorizedAccessException;
-import qnb.common.exception.UserNotFoundException;
+import qnb.common.exception.*;
 import qnb.recommend.client.MlRecommendClient;
 import qnb.recommend.dto.MlRecommendRequest;
 import qnb.recommend.dto.MlRecommendResponse;
@@ -24,7 +21,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-//책 추천 서비스
 @Service
 @RequiredArgsConstructor
 public class RecommendationGenerationService {
@@ -33,68 +29,78 @@ public class RecommendationGenerationService {
     private final UserRecommendedBookRepository urbRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper(); // 재사용
 
     @Transactional
     public MlRecommendResponse generateAndPersist(String bearerToken, int topK, MlRecommendRequest req) {
 
-        // 401 Unauthorized – 토큰 누락/만료
+        // 401
         if (bearerToken == null || bearerToken.isBlank()) {
             throw new UnauthorizedAccessException();
         }
 
-        // 400 Bad Request – 요청 형식 오류
-        if (req == null || req.getUserId() == null || topK <= 0) {
+        // 400
+        if (req == null || req.getUserId() == null || topK <= 0 || topK > 100) {
             throw new InvalidRequestException("요청 형식이 올바르지 않습니다.");
         }
 
-        // 기본값 보정
-        if (req.getFilters() == null) {
-            req.setFilters(MlRecommendRequest.Filters.builder().excludeRead(true).build());
-        } else if (req.getFilters().getExcludeRead() == null) {
-            req.getFilters().setExcludeRead(true);
+        // 1) ML 호출 (네트워크 예외 → 500)
+        MlRecommendResponse resp;
+        try {
+            resp = mlClient.recommendBooks(bearerToken, topK, req);
+        } catch (Exception e) {
+            throw new InternalErrorException("추천 생성 중 오류가 발생했습니다.");
         }
 
-        // 1) ML 호출
-        MlRecommendResponse resp = mlClient.recommendBooks(bearerToken, topK, req);
+        // 404: 추천 없음/빈 응답
+        if (resp == null || resp.getItems() == null || resp.getItems().isEmpty()) {
+            throw new UserNotIndexedException("해당 사용자는 추천 인덱스에 존재하지 않습니다.");
+        }
 
-        // 2) 기존 추천 삭제 (스냅샷 교체 전략)
-        urbRepository.deleteByUserId(req.getUserId());
+        // User는 루프 밖에서 1회 조회
+        User userEntity = userRepository.findById(req.getUserId())
+                .orElseThrow(UserNotFoundException::new);
 
-        // 3) 응답 매핑 후 저장
-        int rank = 1;
+
+        // 2) 기존 추천은 "신규 저장 가능"이 확정된 이후 삭제
+        urbRepository.deleteByUserId(userEntity.getUserId());
+
+        // 3) 매핑/저장
         List<UserRecommendedBook> batch = new ArrayList<>();
+
         for (MlRecommendResponse.Item item : resp.getItems()) {
             Long bookId = item.getBookId();
             if (bookId == null) continue;
-            if (!bookRepository.existsById(bookId.intValue())) continue; // 무결성 방어
 
-            // 키워드 저장: JSON 문자열로 저장(예: ["관계","심리"])
+            // 한 번의 findById로 존재 확인 + 엔티티 획득
+            Book bookEntity = bookRepository.findById(bookId.intValue())
+                    .orElse(null);
+            if (bookEntity == null) continue; // 무결성 방어
+
             String keywordsJson = null;
             if (item.getKeywords() != null) {
                 try {
-                    keywordsJson = new ObjectMapper().writeValueAsString(item.getKeywords());
+                    keywordsJson = objectMapper.writeValueAsString(item.getKeywords());
                 } catch (JsonProcessingException ignored) {}
             }
-
-            User userEntity = userRepository.findById(req.getUserId())
-                    .orElseThrow(UserNotFoundException::new);
-
-            Book bookEntity = bookRepository.findById(bookId.intValue())
-                    .orElseThrow(BookNotFoundException::new);
 
             UserRecommendedBook urb = UserRecommendedBook.builder()
                     .user(userEntity)
                     .book(bookEntity)
                     .keyword(keywordsJson)
-                    .recommendedAt(resp.getGeneratedAt() != null
-                            ? LocalDateTime.ofInstant(resp.getGeneratedAt(), ZoneId.of("UTC"))
-                            : LocalDateTime.now(ZoneId.of("UTC")))
+                    .recommendedAt(
+                            resp.getGeneratedAt() != null
+                                    ? LocalDateTime.ofInstant(resp.getGeneratedAt(), ZoneId.of("UTC"))
+                                    : LocalDateTime.now(ZoneId.of("UTC"))
+                    )
                     .build();
 
             batch.add(urb);
         }
-        urbRepository.saveAll(batch);
 
+        if (!batch.isEmpty()) {
+            urbRepository.saveAll(batch);
+        }
         return resp;
     }
 }
