@@ -1,19 +1,21 @@
 package qnb.question.repository;
 
-import qnb.question.entity.Question;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+import qnb.question.entity.Question;
+import qnb.question.model.QuestionStatus;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
-
     List<Question> findByUser_UserId(Long userId);
 
-    //최신순 정렬 시 GPT 우선 정렬
+    //현재 돌아가는 화면/정렬에서 바로 쓰는 용도 (닉네임 기반)
+    // 최신순 정렬 시 GPT 우선 정렬 (닉네임 기반 - 기존 유지)
     @Query("""
     SELECT q FROM Question q
     WHERE q.book.bookId = :bookId
@@ -26,7 +28,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             Pageable pageable
     );
 
-    //좋아요 정렬 시 GPT 우선 정렬
+    // 좋아요 정렬 시 GPT 우선 정렬 (닉네임 기반 - 기존 유지)
     @Query("""
     SELECT q FROM Question q
     WHERE q.book.bookId = :bookId
@@ -45,14 +47,72 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     @Query("SELECT q FROM Question q WHERE LOWER(q.questionContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Question> searchQuestions(@Param("keyword") String keyword, Pageable pageable);
 
-    //내가 스크랩한 질문 목록
+    // 내가 스크랩한 질문 목록
     @Query("SELECT q FROM Question q JOIN q.scraps s WHERE s.userId = :userId")
     Page<Question> findScrappedQuestionsByUserId(@Param("userId") Long userId, Pageable pageable);
 
-    //내가 좋아요한 질문 목록
-    @Query("SELECT q FROM Question q JOIN q.likes l WHERE l.user.id = :userId")
+    // 내가 좋아요한 질문 목록
+    @Query("SELECT q FROM Question q JOIN q.likes l WHERE l.user.userId = :userId")
     Page<Question> findLikedQuestionsByUserId(@Param("userId") Long userId, Pageable pageable);
 
-    //계정 탈퇴에서 사용되는 메소드
+    // 계정 탈퇴에서 사용되는 메소드
     void deleteByUser_UserId(Long userId);
+
+    //-----GPT 관련 메소드-----
+    // GPT 시스템 사용자 기준 단건 조회
+    Optional<Question> findByBook_BookIdAndUser_UserId(Integer bookId, Long userId);
+
+    // GPT 시스템 사용자 + 상태 기준 조회
+    Optional<Question> findByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, QuestionStatus status);
+
+    // 존재 여부 빠르게 체크
+    boolean existsByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, QuestionStatus status);
+
+    // 레이스 줄이기용 비관적 락
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select q from Question q where q.book.bookId = :bookId and q.user.userId = :userId")
+    Optional<Question> findForUpdateByBookIdAndUserId(@Param("bookId") Integer bookId, @Param("userId") Long userId);
+
+    // 상태별 목록 (예: READY만 노출)
+    Page<Question> findByBook_BookIdAndStatus(Integer bookId, QuestionStatus status, Pageable pageable);
+
+    // GPT 질문만 + 상태 필터
+    Page<Question> findByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, QuestionStatus status, Pageable pageable);
+
+    // 폴링 최적화를 위한 경량 Projection
+    interface QuestionStatusView {
+        Integer getQuestionId();
+        QuestionStatus getStatus();
+    }
+
+    @Query("select q.questionId as questionId, q.status as status from Question q where q.questionId = :questionId")
+    Optional<QuestionStatusView> findStatusViewById(@Param("questionId") Integer questionId);
+
+    // GPT 우선 정렬의 userId 버전 (기존 닉네임 기반은 그대로 두고, 필요 시 이 메서드 사용)
+    //GPT 전용 User 계정을 공식적으로 쓸 때, ID 기반으로 바꿔가는 용도
+    @Query("""
+    SELECT q FROM Question q
+    WHERE q.book.bookId = :bookId
+    ORDER BY 
+        CASE WHEN q.user.userId = :gptUserId THEN 0 ELSE 1 END,
+        q.createdAt DESC
+    """)
+    Page<Question> findWithGptTopByBookIdOrderByCreatedAtDescV2(
+            @Param("bookId") Integer bookId,
+            @Param("gptUserId") Long gptUserId,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT q FROM Question q
+    WHERE q.book.bookId = :bookId
+    ORDER BY 
+        CASE WHEN q.user.userId = :gptUserId THEN 0 ELSE 1 END,
+        q.likeCount DESC
+    """)
+    Page<Question> findWithGptTopByBookIdOrderByLikeCountDescV2(
+            @Param("bookId") Integer bookId,
+            @Param("gptUserId") Long gptUserId,
+            Pageable pageable
+    );
 }

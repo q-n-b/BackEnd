@@ -25,10 +25,14 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final GptUserProperties gptUserProperties;
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider,CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider,
+                          CustomUserDetailsService customUserDetailsService,
+                          GptUserProperties gptUserProperties) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.customUserDetailsService = customUserDetailsService;
+        this.gptUserProperties = gptUserProperties;
     }
 
 
@@ -50,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
                         .requestMatchers("/api/users/preferences").authenticated()
                         .requestMatchers("/api/users/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/books/*/generate-question").authenticated()
 
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
@@ -86,7 +91,8 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
+        return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService,
+                gptUserProperties);
     }
 
 }
