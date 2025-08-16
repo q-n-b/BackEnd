@@ -3,7 +3,7 @@ package qnb.question.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import qnb.question.model.QuestionStatus;
+import qnb.question.entity.Question;
 import qnb.question.service.QuestionGenerationService;
 
 import java.net.URI;
@@ -37,7 +37,7 @@ public class QuestionGenerationController {
             body.put("questionId", r.getQuestionId());
             body.put("status", r.getStatus().name());
 
-            if (r.getStatus() == QuestionStatus.READY) {
+            if (r.getStatus() == Question.QuestionStatus.READY) {
                 body.put("message", "질문이 성공적으로 생성되었습니다.");
             } else {
                 body.put("message", "질문 생성이 시작되었습니다.(백그라운드 처리 중)");

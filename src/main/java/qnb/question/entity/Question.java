@@ -9,7 +9,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import qnb.question.model.QuestionStatus; // 새 enum 추가
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -72,6 +71,33 @@ public class Question {
     @Column(name = "answer_count", nullable = false)
     private int answerCount = 0;
 
+    //=====GPT 질문 생성 재시도 기능에만 쓰이는 칼럼들=====
+    @Column(nullable = false)
+    private Integer retryCount = 0;
+
+    private LocalDateTime lastRetryAt;
+
+    @Column(length = 500)
+    private String lastError;
+
+    //question-status enum 정의
+    public enum QuestionStatus {
+        GENERATING, READY, FAILED
+    }
+
+    // 재시도 진입 시 편의 메서드
+    public void markGeneratingForRetry() {
+        this.status = QuestionStatus.GENERATING;
+        this.retryCount = (this.retryCount == null ? 0 : this.retryCount) + 1;
+        this.lastRetryAt = LocalDateTime.now();
+        this.lastError = null;
+    }
+
+    public void markFailed(String reason) {
+        this.status = QuestionStatus.FAILED;
+        this.lastError = reason;
+    }
+
     // == 편의 메서드 ==
     public void markGenerating() { this.status = QuestionStatus.GENERATING; }
     public void markReady(String content) { this.questionContent = content; this.status = QuestionStatus.READY; }
@@ -81,4 +107,5 @@ public class Question {
     public void decreaseScrapCount() { if (this.scrapCount > 0) this.scrapCount--; }
     public void increaseLikeCount() { this.likeCount++; }
     public void decreaseLikeCount() { if (this.likeCount > 0) this.likeCount--; }
+
 }

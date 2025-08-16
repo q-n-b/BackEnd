@@ -1,5 +1,6 @@
 package qnb.common.handler;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -273,7 +274,6 @@ public class GlobalExceptionHandler {
         ));
     }
 
-
     //사용자가 추천 인덱스가 존재하지 않을 때
     @ExceptionHandler(UserNotIndexedException.class)
     public ResponseEntity<Map<String, String>> handleInvalidRequest(UserNotIndexedException e) {
@@ -282,4 +282,19 @@ public class GlobalExceptionHandler {
                 "message", e.getMessage()
         ));
     }
+
+    //질문 생성 재시도 시 재시도 불가 조건일 때
+    @ExceptionHandler(InvalidStatusException.class)
+    public ResponseEntity<?> handle409Invalid(InvalidStatusException ex) {
+        HttpHeaders headers = new HttpHeaders();
+        if (ex.getRetryAfterSec() != null) {
+            headers.add("Retry-After", String.valueOf(ex.getRetryAfterSec()));
+        }
+        Map<String, Object> body = Map.of(
+                "errorCode", ex.getErrorCode(),   // 서비스에서 던진 사유별 코드
+                "message",   ex.getMessage()
+        );
+        return new ResponseEntity<>(body, headers, HttpStatus.CONFLICT);
+    }
+
 }

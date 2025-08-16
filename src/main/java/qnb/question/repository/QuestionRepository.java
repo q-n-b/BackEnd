@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import qnb.question.entity.Question;
-import qnb.question.model.QuestionStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -63,32 +62,38 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     Optional<Question> findByBook_BookIdAndUser_UserId(Integer bookId, Long userId);
 
     // GPT 시스템 사용자 + 상태 기준 조회
-    Optional<Question> findByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, QuestionStatus status);
+    Optional<Question> findByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, Question.QuestionStatus status);
 
     // 존재 여부 빠르게 체크
-    boolean existsByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, QuestionStatus status);
+    boolean existsByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, Question.QuestionStatus status);
 
-    // 레이스 줄이기용 비관적 락
+    // (생성용) 레이스 줄이기용 비관적 락
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select q from Question q where q.book.bookId = :bookId and q.user.userId = :userId")
     Optional<Question> findForUpdateByBookIdAndUserId(@Param("bookId") Integer bookId, @Param("userId") Long userId);
 
+    // (재시도용) 재시도 전용 비관적 락
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select q from Question q where q.questionId = :id")
+    Optional<Question> findByIdForUpdate(@Param("id") Integer id);
+
     // 상태별 목록 (예: READY만 노출)
-    Page<Question> findByBook_BookIdAndStatus(Integer bookId, QuestionStatus status, Pageable pageable);
+    Page<Question> findByBook_BookIdAndStatus(Integer bookId, Question.QuestionStatus status, Pageable pageable);
 
     // GPT 질문만 + 상태 필터
-    Page<Question> findByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, QuestionStatus status, Pageable pageable);
+    Page<Question> findByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, Question.QuestionStatus status, Pageable pageable);
 
     // 폴링 최적화를 위한 경량 Projection
     interface QuestionStatusView {
         Integer getQuestionId();
-        QuestionStatus getStatus();
+        Question.QuestionStatus getStatus();
     }
 
-    @Query("select q.questionId as questionId, q.status as status from Question q where q.questionId = :questionId")
+    @Query("select q.questionId as questionId, q.status as status from " +
+            "Question q where q.questionId = :questionId")
     Optional<QuestionStatusView> findStatusViewById(@Param("questionId") Integer questionId);
 
-    // GPT 우선 정렬의 userId 버전 (기존 닉네임 기반은 그대로 두고, 필요 시 이 메서드 사용)
+    // ======GPT 우선 정렬의 userId 버전 (기존 닉네임 기반은 그대로 두고, 필요 시 이 메서드 사용)=======
     //GPT 전용 User 계정을 공식적으로 쓸 때, ID 기반으로 바꿔가는 용도
     @Query("""
     SELECT q FROM Question q
