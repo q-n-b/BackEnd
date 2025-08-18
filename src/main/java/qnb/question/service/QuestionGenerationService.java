@@ -1,8 +1,8 @@
 package qnb.question.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -13,6 +13,8 @@ import qnb.book.repository.BookRepository;
 import qnb.common.config.GptUserProperties;
 import qnb.common.exception.BookNotFoundException;
 import qnb.common.exception.InternalErrorException;
+import qnb.question.client.dto.MlGenerateReq;
+import qnb.question.client.dto.MlGenerateResp;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
 import qnb.user.repository.UserRepository;
@@ -21,6 +23,8 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.Optional;
 
+import static qnb.question.entity.Question.QuestionStatus.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,7 +32,7 @@ public class QuestionGenerationService {
 
     private final BookRepository bookRepository;
     private final QuestionRepository questionRepository;
-    private final WebClient mlWebClient;      // MlClientConfig 주입
+    private final WebClient mlWebClient;      // MlClientConfig에서 주입
     private final UserRepository userRepository;
     private final GptUserProperties gptProps; // 시스템 GPT 계정
 
@@ -44,7 +48,7 @@ public class QuestionGenerationService {
      * 한 도서당 GPT 질문 1개 정책:
      * - READY 존재 → 409
      * - GENERATING 존재 → 200(공유)
-     * - FAILED 존재 → 200(재시도 UI 안내; 자동 생성 안함)
+     * - FAILED 존재 → 200 (재시도 UI 노출; 자동 생성 안함)
      * - 없으면 → 드래프트 생성(GENERATING), 동기 타임박스→백그라운드 이어서
      */
     @Transactional
@@ -62,67 +66,70 @@ public class QuestionGenerationService {
         if (lockedOpt.isPresent()) {
             Question existing = lockedOpt.get();
             switch (existing.getStatus()) {
+                //질문 존재하면 409
                 case READY:
                     return Result.conflict409();
+                    //질문 생성 중
                 case GENERATING:
-                    return Result.ok200(existing.getQuestionId(),
-                            Question.QuestionStatus.GENERATING, nextCheckAfterSec);
+                    return Result.ok200(existing.getQuestionId(), GENERATING, nextCheckAfterSec);
+                    //FAILED일 경우 재시도 UI 노출
                 case FAILED:
-                    return Result.ok200(existing.getQuestionId(),
-                            Question.QuestionStatus.FAILED, null);
+                    return Result.ok200(existing.getQuestionId(), FAILED, null);
             }
         }
 
         // 2) 존재하지 않으면 신규 드래프트 생성(GENERATING)
         Question draft = new Question();
         draft.setBook(book);
-        draft.setUser(userRepository.getReferenceById(gptUserId)); // GPT 계정 연결
-        draft.setStatus(Question.QuestionStatus.GENERATING);
+        draft.setUser(userRepository.getReferenceById(gptUserId));
+        draft.setStatus(GENERATING);
 
         try {
             draft = questionRepository.save(draft);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            // 극단적 레이스: 동시에 "없다"고 판단 후 양쪽이 INSERT 시도 → 유니크 충돌
+            // 극단적 레이스 → 유니크 충돌
             Question existing = questionRepository
                     .findByBook_BookIdAndUser_UserId(bookId, gptUserId)
                     .orElseThrow(() -> e);
 
-            if (existing.getStatus() == Question.QuestionStatus.READY) {
-                return Result.conflict409();
-            }
-            if (existing.getStatus() == Question.QuestionStatus.GENERATING) {
-                return Result.ok200(existing.getQuestionId(),
-                        Question.QuestionStatus.GENERATING, nextCheckAfterSec);
-            }
-            return Result.ok200(existing.getQuestionId(),
-                    Question.QuestionStatus.FAILED, null);
+            if (existing.getStatus() == READY) return Result.conflict409();
+            if (existing.getStatus() == GENERATING) return Result.ok200(existing.getQuestionId(), GENERATING, nextCheckAfterSec);
+            return Result.ok200(existing.getQuestionId(), FAILED, null);
         }
 
         Integer qid = draft.getQuestionId();
 
-        // 3) 동기 타임박스 시도 (2~3초 컷)
+        // 3) 동기 타임박스 시도
         try {
-            String content = trySyncGenerate(book);
-            if (content != null) {
-                draft.setQuestionContent(content);
-                draft.setStatus(Question.QuestionStatus.READY);
-                return Result.created201(qid, Question.QuestionStatus.READY, null);
+            MlGenerateResp resp = trySyncGenerate(book);
+            if (resp != null) {
+                if (resp.blocked()) {
+                    // 정책 차단 → FAILED
+                    // ML에서 reason 받아옴 (어떤 문자열이든 상관 X)
+                    // 실패 -> FAILED
+                    draft.markFailed(truncate("blocked:" + safe(resp.reason()), 480));
+                    return Result.created201(qid, FAILED, null);
+                } else {
+                    // 정상 생성 → READY
+                    draft.setQuestionContent(resp.question());
+                    draft.setStatus(READY);
+                    return Result.created201(qid, READY, null);
+                }
             }
+
         } catch (MlClientException e) {
-            // 동기 구간에서도 4xx 등 비복구 오류면 바로 FAILED 저장
             draft.markFailed(truncate(e.getMessage(), 480));
-            return Result.created201(qid, Question.QuestionStatus.FAILED, null);
+            return Result.created201(qid, FAILED, null);
         } catch (Exception e) {
-            // TIMEOUT 등의 경우는 백그라운드로 이어서 처리
             log.info("GPT 동기 생성 실패/타임아웃: {}", e.getMessage());
         }
 
         // 4) 타임아웃/실패 → 백그라운드에서 이어서 처리
         continueInBackground(qid);
-        return Result.created201(qid, Question.QuestionStatus.GENERATING, nextCheckAfterSec);
+        return Result.created201(qid, GENERATING, nextCheckAfterSec);
     }
 
-    /** ML 호출 예외: 상태코드/바디를 메시지로 담아 lastError에 저장하기 위함 */
+    /** ML 호출 예외: 상태코드/바디를 메시지로 담음 */
     public static class MlClientException extends RuntimeException {
         private final int status;
         public MlClientException(int status, String body) {
@@ -132,20 +139,20 @@ public class QuestionGenerationService {
         public int getStatus() { return status; }
     }
 
-    /** ML 서버 동기 호출 (짧게 시도, 실패 시 예외) */
-    private String trySyncGenerate(Book book) {
-        GenerateReq req = new GenerateReq(
+    /** ML 서버 동기 호출 (DTO 기반) */
+    private MlGenerateResp trySyncGenerate(Book book) {
+        MlGenerateReq req = new MlGenerateReq(
                 book.getBookId().longValue(),
                 safe(book.getTitle())
         );
 
         return mlWebClient.post()
-                .uri("/generate-question") // ML 엔드포인트 경로
+                .uri("/generate-question")
                 .bodyValue(req)
                 .exchangeToMono(resp -> {
                     HttpStatusCode sc = resp.statusCode();
                     if (sc.is2xxSuccessful()) {
-                        return resp.bodyToMono(String.class);
+                        return resp.bodyToMono(MlGenerateResp.class);
                     } else {
                         return resp.bodyToMono(String.class)
                                 .defaultIfEmpty("")
@@ -156,31 +163,43 @@ public class QuestionGenerationService {
                 .block();
     }
 
+    //타임아웃시 백그라운드 이어서 처리
     @Async("gptWorker")
     @Transactional
     public void continueInBackground(Integer questionId) {
         try {
             Question q = questionRepository.findById(questionId).orElse(null);
-            if (q == null || q.getStatus() == Question.QuestionStatus.READY) return;
+            if (q == null || q.getStatus() == READY) return;
 
-            String content = trySyncGenerate(q.getBook());
-            q.setQuestionContent(content);
-            q.setStatus(Question.QuestionStatus.READY);
+            MlGenerateResp resp = trySyncGenerate(q.getBook());
+            if (resp == null) {
+                q.markFailed(truncate("ml_call_failed: timeout_or_transport_error", 480));
+                return;
+            }
+            if (resp.blocked()) {
+                q.markFailed(truncate("blocked:" + safe(resp.reason()), 480));
+                return;
+            }
+            q.setQuestionContent(resp.question());
+            q.setStatus(READY);
 
         } catch (MlClientException e) {
-            // 4xx 등 → 비복구: 즉시 FAILED + 사유 저장
             Question q = questionRepository.findById(questionId).orElse(null);
             if (q != null) q.markFailed(truncate(e.getMessage(), 480));
 
         } catch (Exception e) {
-            // TIMEOUT/네트워크/5xx 등 → 실패로 마킹(사유 저장)
             Question q = questionRepository.findById(questionId).orElse(null);
             if (q != null) q.markFailed(truncate(e.getMessage(), 480));
         }
     }
 
-    private String safe(String s) { return s == null ? "" : s.replace("\"","'"); }
-    private String truncate(String s, int max) { return s == null ? null : (s.length() <= max ? s : s.substring(0, max)); }
+    //문자열 안에서 특수 문자(")를 '로 바꿔서 안전하게 저장하는 메소드
+    private String safe(String s)
+    { return s == null ? "" : s.replace("\"","'"); }
+
+    //너무 긴 문자열을 잘라서 DB 컬럼 길이 초과 에러 방지하는 메소드
+    private String truncate(String s, int max)
+    { return s == null ? null : (s.length() <= max ? s : s.substring(0, max)); }
 
     // === 응답 뷰모델 ===
     @Value
@@ -200,14 +219,8 @@ public class QuestionGenerationService {
         }
         public static Result conflict409() {
             return new Result(409, null, null, null,
-                    "QuestionAlreadyExistsException", "해당 도서에 대한 질문이 이미 존재합니다.");
+                    "QuestionAlreadyExistsException",
+                    "해당 도서에 대한 질문이 이미 존재합니다.");
         }
-    }
-
-    // === ML 요청 DTO ===
-    @Value
-    public static class GenerateReq {
-        Long bookId;
-        String title;
     }
 }

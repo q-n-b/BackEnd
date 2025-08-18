@@ -77,12 +77,6 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     @Query("select q from Question q where q.questionId = :id")
     Optional<Question> findByIdForUpdate(@Param("id") Integer id);
 
-    // 상태별 목록 (예: READY만 노출)
-    Page<Question> findByBook_BookIdAndStatus(Integer bookId, Question.QuestionStatus status, Pageable pageable);
-
-    // GPT 질문만 + 상태 필터
-    Page<Question> findByBook_BookIdAndUser_UserIdAndStatus(Integer bookId, Long userId, Question.QuestionStatus status, Pageable pageable);
-
     // 폴링 최적화를 위한 경량 Projection
     interface QuestionStatusView {
         Integer getQuestionId();
