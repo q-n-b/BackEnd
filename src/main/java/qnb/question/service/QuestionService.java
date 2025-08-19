@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -150,71 +151,79 @@ public class QuestionService {
         return new QuestionPageResponseDto(questions, pageInfoDto);
     }
 
+    //질문 상세 조회 + 답변 리스트 조회
     public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort) {
         Question question = questionRepository.findById(Math.toIntExact(questionId))
                 .orElseThrow(QuestionNotFoundException::new);
 
-        // 모든 답변 조회
+        // 1) 답변 조회 (N+1 방지하려면 fetch join 메서드로 교체 권장)
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
 
-        // 사용자별 그룹핑
+        // 2) 사용자별 그룹핑
         Map<Long, List<Answer>> grouped = answers.stream()
                 .filter(a -> a.getUser() != null)
                 .collect(Collectors.groupingBy(a -> a.getUser().getUserId()));
 
-        // 상태 우선순위
-        Map<String, Integer> stateOrder = Map.of(
-                "BEFORE", 0,
-                "READING", 1,
-                "AFTER", 2
+        // 3) 상태 우선순위
+        Map<String, Integer> stateOrder = Map.of("BEFORE", 0, "READING", 1, "AFTER", 2);
+
+        // 4) 블록 내부 정렬: 상태만 유지(같은 상태 내 순서는 제한 없음)
+        Comparator<Answer> innerComparator = Comparator.comparing(
+                (Answer a) -> stateOrder.getOrDefault(
+                        Optional.ofNullable(a.getAnswerState()).orElse("").toUpperCase(), 99)
         );
 
-        // 블록 내부 정렬 (상태 우선, 그다음 작성일)
-        Comparator<Answer> innerComparator = Comparator
-                .comparing((Answer a) -> {
-                    String s = a.getAnswerState();
-                    return s != null ? stateOrder.getOrDefault(s.toUpperCase(), 99) : 99;
-                })
-                .thenComparing(Answer::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo));
+        // 5) 대표값 유틸
+        Function<List<Answer>, Integer> maxLikes = list ->
+                list.stream()
+                        .map(Answer::getLikeCount)
+                        .filter(Objects::nonNull)
+                        .max(Integer::compareTo)
+                        .orElse(0);
 
-        // 블록 간 정렬
+        Function<List<Answer>, LocalDateTime> latestCreated = list ->
+                list.stream()
+                        .map(Answer::getCreatedAt)
+                        .filter(Objects::nonNull)
+                        .max(LocalDateTime::compareTo)
+                        .orElse(LocalDateTime.MIN);
+
+        // 6) 블록 간 정렬기(타이브레이커 포함)
         Comparator<Map.Entry<Long, List<Answer>>> blockComparator;
         if ("popular".equalsIgnoreCase(sort)) {
-            // 인기순: 각 사용자 답변 중 최대 likeCount 기준 내림차순
-            blockComparator = Comparator.comparing(
-                    (Map.Entry<Long, List<Answer>> e) ->
-                            e.getValue().stream()
-                                    .map(Answer::getLikeCount)
-                                    .filter(Objects::nonNull)
-                                    .max(Integer::compareTo)
-                                    .orElse(0)
-            ).reversed();
+            // 1) 최대 좋아요 수 DESC
+            // 2) 최신 작성일 DESC (동점 타이브레이커)
+            // 3) userId ASC (최종 안정성)
+            blockComparator = Comparator
+                    .comparing((Map.Entry<Long, List<Answer>> e) -> maxLikes.apply(e.getValue()))
+                    .reversed()
+                    .thenComparing(e -> latestCreated.apply(e.getValue()), Comparator.reverseOrder())
+                    .thenComparing(Map.Entry::getKey);
         } else {
-            // 최신순: 각 사용자 답변 중 가장 최신 createdAt 기준 내림차순
-            blockComparator = Comparator.comparing(
-                    (Map.Entry<Long, List<Answer>> e) ->
-                            e.getValue().stream()
-                                    .map(Answer::getCreatedAt)
-                                    .filter(Objects::nonNull)
-                                    .max(LocalDateTime::compareTo)
-                                    .orElse(LocalDateTime.MIN)
-            ).reversed();
+            // latest 기본 정렬도 안정성 부여:
+            // 1) 최신 작성일 DESC
+            // 2) 최대 좋아요 수 DESC
+            // 3) userId ASC
+            blockComparator = Comparator
+                    .comparing((Map.Entry<Long, List<Answer>> e) -> latestCreated.apply(e.getValue()), Comparator.reverseOrder())
+                    .thenComparing(e -> maxLikes.apply(e.getValue()), Comparator.reverseOrder())
+                    .thenComparing(Map.Entry::getKey);
         }
 
-        // 최종 사용자 블록 생성
+        // 7) 사용자 블록 정렬 + DTO 변환
         List<AnswersByUserDto> answersByUser = grouped.entrySet().stream()
-                .sorted(blockComparator) // 블록 간 정렬
+                .sorted(blockComparator)
                 .map(entry -> {
                     Long userId = entry.getKey();
                     User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
                     List<AnswerResponseDto> answerDtos = entry.getValue().stream()
-                            .sorted(innerComparator) // 블록 내부 정렬
+                            .sorted(innerComparator)
                             .map(a -> AnswerResponseDto.from(
                                     a,
                                     user.getUserId().toString(),
-                                    user.getUserNickname() != null ? user.getUserNickname() : "알 수 없음",
-                                    user.getProfileUrl() != null ? user.getProfileUrl() : ""
+                                    Optional.ofNullable(user.getUserNickname()).orElse("알 수 없음"),
+                                    Optional.ofNullable(user.getProfileUrl()).orElse("")
                             ))
                             .collect(Collectors.toList());
 
@@ -225,4 +234,5 @@ public class QuestionService {
         QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
         return new QuestionDetailResponseDto(questionDto, answersByUser);
     }
+
 }
