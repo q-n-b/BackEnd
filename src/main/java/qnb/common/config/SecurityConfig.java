@@ -76,11 +76,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
+                //개발용
                 "http://localhost:3000",
-                "http://3.107.202.108:3000",
+                "http://16.176.15.135:3000",
+
+                //아이폰
                 "http://192.168.0.109:3000",
                 "http://192.168.0.17:3000",
 
+                //운영용
                 "https://qnb.duckdns.org"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
