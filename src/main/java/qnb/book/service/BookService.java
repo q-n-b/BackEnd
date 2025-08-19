@@ -50,7 +50,8 @@ public class BookService {
     private final UserBookReadRepository readRepository;
 
     public boolean existsById(Integer bookId) {
-        return bookRepository.existsById(bookId.intValue());
+        return bookRepository.
+                existsById(bookId.intValue());
     }
 
     // 주간 확정 테이블 접근용 (새 레포지토리 안 만들고 JdbcTemplate 활용)
@@ -83,7 +84,8 @@ public class BookService {
 
             // 같은 유저 + 같은 책의 추천 기록 중 최신 1개를 찾아 keyword 가져오기
             String keyword = recommendedBookRepository
-                    .findTopByUser_UserIdAndBook_BookIdOrderByRecommendedAtDesc(userId, weeklyBookId)
+                    .findTopByUser_UserIdAndBook_BookIdOrderByRecommendedAtDesc(
+                            userId, weeklyBookId)
                     .map(UserRecommendedBook::getKeyword)
                     .orElse(null);
 
@@ -195,6 +197,7 @@ public class BookService {
                     answerCount,
                     question.getLikeCount(),
                     question.getScrapCount(),
+                    question.getStatus(),
                     question.getCreatedAt()
             );
         });

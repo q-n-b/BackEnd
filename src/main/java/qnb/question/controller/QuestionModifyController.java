@@ -48,6 +48,7 @@ public class QuestionModifyController {
                 answerCount,
                 updatedQuestion.getLikeCount(),
                 updatedQuestion.getScrapCount(),
+                updatedQuestion.getStatus(),
                 updatedQuestion.getCreatedAt()
         );
 

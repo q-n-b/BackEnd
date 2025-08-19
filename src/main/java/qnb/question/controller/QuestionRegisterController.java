@@ -58,6 +58,7 @@ public class QuestionRegisterController {
                 answerCount,
                 savedQuestion.getLikeCount(),
                 savedQuestion.getScrapCount(),
+                savedQuestion.getStatus(),
                 savedQuestion.getCreatedAt()
         );
 

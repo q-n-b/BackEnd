@@ -217,42 +217,4 @@ public class QuestionService {
         return new QuestionDetailResponseDto(questionDto, answersByUser);
     }
 
-
-
-    /*@Value("${ml.server.url}")
-    private String mlServerUrl;
-*/
-    //질문 생성 메소드
-   /* public void generateQuestion(Integer bookId) {
-        // 1. 책 정보 조회
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
-
-        // 2. ML 서버로 요청 보낼 DTO 구성
-        Map<String, String> requestBody = Map.of(
-                "title", book.getTitle(),
-                "description", book.getDescription()
-        );
-
-        // 3. ML 서버로 POST 요청
-        ResponseEntity<QuestionResponse> response = restTemplate.postForEntity(
-                mlServerUrl + "/generate-question",
-                requestBody,
-                QuestionResponse.class
-        );
-
-        // 4. 응답 값 저장
-        QuestionResponse questionRes = response.getBody();
-
-        Question question = Question.builder()
-                .book(book)
-                .content(questionRes.getContent())
-                .user(null) // GPT 질문이면 null 또는 별도 'GPT' user
-                .build();
-
-        questionRepository.save(question);
-    }*/
-
-
-
 }

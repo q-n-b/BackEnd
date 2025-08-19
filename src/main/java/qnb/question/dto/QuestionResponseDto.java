@@ -17,7 +17,9 @@ public class QuestionResponseDto {
     private final Integer answerCount;     // 답변 수
     private final Integer likeCount;       // 좋아요 수
     private final Integer scrapCount;      // 스크랩 수
+    private final Question.QuestionStatus status;   // 질문 상태 (READY/GENERATING/FAILED)
     private final LocalDateTime createdAt; // 생성일시
+
 
     // 디폴트 프로필 이미지 S3 URL
     private static final String DEFAULT_PROFILE_URL =
@@ -26,7 +28,7 @@ public class QuestionResponseDto {
     public QuestionResponseDto(
             BookResponseDto book, Long userId, Integer questionId,
             String userNickname, String profileUrl, String questionContent,
-            Integer answerCount, Integer likeCount, Integer scrapCount,
+            Integer answerCount, Integer likeCount, Integer scrapCount, Question.QuestionStatus status,
             LocalDateTime createdAt) {
 
         this.book = book;
@@ -41,6 +43,7 @@ public class QuestionResponseDto {
         this.answerCount = answerCount;
         this.likeCount = likeCount;
         this.scrapCount = scrapCount;
+        this.status = status;
         this.createdAt = createdAt;
     }
 
@@ -55,6 +58,7 @@ public class QuestionResponseDto {
                 answerCount,
                 question.getLikeCount(),
                 question.getScrapCount(),
+                question.getStatus(),
                 question.getCreatedAt()
         );
     }
