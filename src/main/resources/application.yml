@@ -53,6 +53,7 @@ aladin:
 ml:
   server:
     url: http://127.0.0.1:5000   # 같은 EC2에서 구동 시
+  api-key: dev-local-secret-123
   timeouts:
     connect-ms: 3000
     read-ms: 5000

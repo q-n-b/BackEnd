@@ -23,6 +23,9 @@ public class MlClientConfig {
     @Value("${ml.server.url}")
     private String mlUrl;
 
+    @Value("${ml.api-key}")
+    private String mlApiKey;
+
     @Value("${ml.timeouts.connect-ms:3000}")
     private int connectMs;
 
@@ -43,9 +46,10 @@ public class MlClientConfig {
                 );
 
         return WebClient.builder()
-                .baseUrl(mlUrl) // yml의 ml.server.url 값
+                .baseUrl(mlUrl)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader("x-api-key", mlApiKey)   // 핵심: 모든 요청에 API Key 삽입
                 .build();
     }
 }
