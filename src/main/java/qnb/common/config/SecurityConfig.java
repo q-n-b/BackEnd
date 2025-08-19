@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/books/*/generate-question").permitAll()
 
                         //보호 경로
                         .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
@@ -57,7 +58,7 @@ public class SecurityConfig {
 
                         //질문 생성/재시도 보호 경로
                         .requestMatchers(HttpMethod.POST, "/api/questions/*/retry").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/books/*/generate-question").authenticated()
+                        //.requestMatchers(HttpMethod.POST, "/api/books/*/generate-question").authenticated()
 
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
