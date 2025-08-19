@@ -35,7 +35,6 @@ public class BookScrapService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-
     @Transactional
     public BookScrapResponseDto toggleScrap(Integer bookId, Long userId, String status) {
         status = status.toUpperCase();
@@ -49,12 +48,10 @@ public class BookScrapService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
 
-        // 현재 상태 확인
         boolean isWish = userBookWishRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
         boolean isReading = userBookReadingRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
         boolean isReadBefore = userBookReadRepository.existsByUser_UserIdAndBook_BookId(userId, bookId);
 
-        // 동일 상태면 토글 해제
         if ((status.equals("WISH") && isWish) ||
                 (status.equals("READING") && isReading) ||
                 (status.equals("READ") && isReadBefore)) {
@@ -67,34 +64,33 @@ public class BookScrapService {
                     .build();
         }
 
-        // 기존 상태 제거
         deleteScrapStatus(userId, bookId);
 
-        boolean readInsertedThisTx = false; // 이번 호출에서 READ가 새로 추가됐는지
+        boolean readInsertedThisTx = false;
 
-        // 새로운 상태 등록
         switch (status) {
             case "WISH" -> userBookWishRepository.save(
-                    UserBookWish.builder().user(user).book(book).
-                            createdAt(LocalDateTime.now()).build()
+                    UserBookWish.builder()
+                            .user(user)
+                            .book(book)
+                            .createdAt(LocalDateTime.now())
+                            .build()
             );
             case "READING" -> userBookReadingRepository.save(
-                    UserBookReading.builder().user(user).book(book).
-                            createdAt(LocalDateTime.now()).build()
+                    UserBookReading.builder()
+                            .user(user)
+                            .book(book)
+                            .createdAt(LocalDateTime.now())
+                            .build()
             );
             case "READ" -> {
-                // 동시요청 대비 한 번 더 확인
                 if (!userBookReadRepository.existsByUser_UserIdAndBook_BookId(userId, bookId)) {
-                    userBookReadRepository.save(
-                            UserBookRead.builder().user(user).book(book).
-                                    createdAt(LocalDateTime.now()).build()
-                    );
+                    userBookReadRepository.save(UserBookRead.ofRead(user, book));
                     readInsertedThisTx = true;
                 }
             }
         }
 
-        // READ가 "신규"로 들어간 경우에만 이벤트 발행 (커밋 후 비동기 처리됨)
         if ("READ".equals(status) && readInsertedThisTx && !isReadBefore) {
             eventPublisher.publishEvent(new UserBookReadAddedEvent(userId));
         }
@@ -105,6 +101,7 @@ public class BookScrapService {
                 .message("도서 스크랩 상태가 저장되었습니다.")
                 .build();
     }
+
 
     private void deleteScrapStatus(Long userId, Integer bookId) {
         userBookWishRepository.deleteByUser_UserIdAndBook_BookId(userId, bookId);
