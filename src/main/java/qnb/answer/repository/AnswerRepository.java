@@ -37,5 +37,4 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     // 계정 탈퇴에서 사용하는 메소드
     void deleteByUser_UserId(Long userId);
-
 }
