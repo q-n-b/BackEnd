@@ -10,6 +10,8 @@ import qnb.book.repository.BookRepository;
 import qnb.book.repository.UserRecommendedBookRepository;
 import qnb.common.dto.PageInfoDto;
 import qnb.common.exception.UserNotFoundException;
+import qnb.like.repository.UserQuestionLikeRepository;
+import qnb.question.dto.QuestionListItemDto;
 import qnb.question.dto.QuestionListResponseDto;
 import qnb.question.dto.QuestionResponseDto;
 import qnb.question.entity.Question;
@@ -20,8 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import qnb.scrap.repository.UserQuestionScrapRepository;
 import qnb.user.entity.User;
-import qnb.user.entity.UserPreference;
 import qnb.user.repository.*;
 
 import java.time.DayOfWeek;
@@ -32,8 +34,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.sql.Date;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +48,8 @@ public class BookService {
     private final UserBookWishRepository wishRepository;
     private final UserBookReadingRepository readingRepository;
     private final UserBookReadRepository readRepository;
+    private final UserQuestionScrapRepository userQuestionScrapRepository;
+    private final UserQuestionLikeRepository userQuestionLikeRepository;
 
     public boolean existsById(Integer bookId) {
         return bookRepository.
@@ -158,63 +160,69 @@ public class BookService {
 
 
     // 특정 도서의 질문 리스트 조회
-    public QuestionListResponseDto getBookQuestions(Integer bookId, String sort, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public QuestionListResponseDto getBookQuestions(Integer bookId, String sort, Pageable pageable, Long userId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
 
-        Page<Question> questions;
-        if ("popular".equals(sort)) {
-            questions = questionRepository.findWithGptTopByBookIdOrderByLikeCountDesc(bookId, pageable);
-        } else {
-            questions = questionRepository.findWithGptTopByBookIdOrderByCreatedAtDesc(bookId, pageable);
-        }
+        Page<Question> questions = "popular".equals(sort)
+                ? questionRepository.findWithGptTopByBookIdOrderByLikeCountDesc(bookId, pageable)
+                : questionRepository.findWithGptTopByBookIdOrderByCreatedAtDesc(bookId, pageable);
 
-        // 질문 ID 리스트 추출
-        List<Integer> questionIds = questions.getContent().stream()
-                .map(Question::getQuestionId)
-                .collect(Collectors.toList());
-
-        // 질문별 답변 수 조회 (List<Object[]> → Map<Integer, Integer>)
-        List<Object[]> rawAnswerCounts = answerRepository.countAnswersByQuestionIds(questionIds);
-        Map<Integer, Integer> answerCountMap = rawAnswerCounts.stream()
+        // 답변 수 집계 (기존)
+        List<Integer> qIds = questions.getContent().stream().map(Question::getQuestionId).toList();
+        Map<Integer, Integer> answerCountMap = answerRepository.countAnswersByQuestionIds(qIds).stream()
                 .collect(Collectors.toMap(
                         row -> (Integer) row[0],
                         row -> ((Long) row[1]).intValue()
                 ));
 
-        // DTO 변환 (답변 수 포함)
-        Page<QuestionResponseDto> questionPage = questions.map(question -> {
-            String profileUrl = question.getUser().getProfileUrl();
-            int answerCount = answerCountMap.getOrDefault(question.getQuestionId(), 0);
+        // 질문 아이템 변환
+        List<QuestionListItemDto> items = questions.stream().map(q -> {
+            int qid = q.getQuestionId();
 
-            return new QuestionResponseDto(
-                    BookResponseDto.from(question.getBook()),
-                    question.getUser().getUserId(),
-                    question.getQuestionId(),
-                    question.getUser().getUserNickname(),
+            // 사용자 정보 null-safe
+            Long ownerId = (q.getUser() != null) ? q.getUser().getUserId() : null;
+            String nickname = (q.getUser() != null) ? q.getUser().getUserNickname() : "사용자";
+            String profileUrl = (q.getUser() != null) ? q.getUser().getProfileUrl() : null;
+
+            // 좋아요/스크랩 플래그 (비로그인 시 false 고정)
+            boolean isLiked = false;
+            boolean isScrapped = false;
+            if (userId != null) {
+                isLiked = userQuestionLikeRepository.existsByUser_UserIdAndQuestion_QuestionId(userId, qid);
+                isScrapped = userQuestionScrapRepository.existsByUserIdAndQuestion_QuestionId(userId, qid);
+            }
+
+            return QuestionListItemDto.of(
+                    qid,
+                    q.getBook().getBookId(),
+                    ownerId,
+                    nickname,
                     profileUrl,
-                    question.getQuestionContent(),
-                    answerCount,
-                    question.getLikeCount(),
-                    question.getScrapCount(),
-                    question.getStatus(),
-                    question.getCreatedAt()
+                    q.getQuestionContent(),
+                    answerCountMap.getOrDefault(qid, 0),
+                    q.getLikeCount(),
+                    q.getScrapCount(),
+                    q.getStatus().name(),
+                    q.getCreatedAt(),
+                    isLiked,
+                    isScrapped
             );
-        });
+        }).toList();
 
-        BookSimpleDto bookDto = new BookSimpleDto(book.getBookId(), book.getTitle(),book.getImageUrl(),
-                book.getAuthor(),book.getPublisher(),book.getPublishedYear());
-
+        BookSimpleDto bookDto = new BookSimpleDto(
+                book.getBookId(), book.getTitle(), book.getImageUrl(),
+                book.getAuthor(), book.getPublisher(), book.getPublishedYear()
+        );
         PageInfoDto pageInfo = new PageInfoDto(
                 questions.getNumber() + 1,
                 questions.getTotalPages(),
                 questions.getTotalElements()
         );
 
-        return new QuestionListResponseDto(
-                bookDto,
-                questionPage.getContent(),
-                pageInfo
-        );
+        return new QuestionListResponseDto(bookDto, items, pageInfo);
     }
+
+
 }

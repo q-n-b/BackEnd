@@ -10,10 +10,10 @@ import java.util.List;
 @Data
 public class QuestionListResponseDto {
     private BookSimpleDto book;
-    private List<QuestionResponseDto> questions;
+    private List<QuestionListItemDto> questions;
     private PageInfoDto pageInfo;
 
-    public QuestionListResponseDto(BookSimpleDto book, List<QuestionResponseDto> questions, PageInfoDto pageInfo) {
+    public QuestionListResponseDto(BookSimpleDto book, List<QuestionListItemDto> questions, PageInfoDto pageInfo) {
         this.book = book;
         this.questions = questions;
         this.pageInfo = pageInfo;

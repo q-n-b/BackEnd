@@ -1,11 +1,13 @@
 package qnb.question.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import qnb.question.dto.QuestionDetailResponseDto;
 import qnb.question.dto.QuestionPageResponseDto;
 import qnb.question.service.QuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import qnb.user.security.UserDetailsImpl;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -28,9 +30,11 @@ public class QuestionGetController {
     @GetMapping("/{questionId}")
     public ResponseEntity<QuestionDetailResponseDto> getQuestionDetail(
             @PathVariable Long questionId,
-            @RequestParam(defaultValue = "latest") String sort) {
+            @RequestParam(defaultValue = "latest") String sort,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        QuestionDetailResponseDto response = questionService.getQuestionDetail(questionId, sort);
+        Long viewerId = (userDetails != null) ? userDetails.getUserId() : null;
+        QuestionDetailResponseDto response = questionService.getQuestionDetail(questionId, sort, viewerId);
         return ResponseEntity.ok(response);
     }
 }

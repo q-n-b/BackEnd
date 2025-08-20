@@ -2,6 +2,7 @@ package qnb.question.service;
 //QuestionService 파일
 
 import org.springframework.web.client.RestTemplate;
+import qnb.answer.dto.AnswerListItemDto;
 import qnb.answer.dto.AnswerResponseDto;
 import qnb.answer.dto.AnswersByUserDto;
 import qnb.answer.entity.Answer;
@@ -12,12 +13,12 @@ import qnb.common.exception.BookNotFoundException;
 import qnb.common.exception.QuestionNotFoundException;
 import qnb.common.exception.UserNotFoundException;
 import qnb.common.exception.UnauthorizedAccessException;
-import qnb.question.dto.QuestionDetailResponseDto;
-import qnb.question.dto.QuestionPageResponseDto;
-import qnb.question.dto.QuestionResponseDto;
+import qnb.like.repository.UserAnswerLikeRepository;
+import qnb.like.repository.UserQuestionLikeRepository;
+import qnb.question.dto.*;
+import qnb.scrap.repository.UserQuestionScrapRepository;
 import qnb.user.entity.User;
 import qnb.user.repository.UserRepository;
-import qnb.question.dto.QuestionRequestDto;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
 import qnb.answer.repository.AnswerRepository;
@@ -45,8 +46,9 @@ public class QuestionService {
     private final UserRepository userRepository;
     private final AnswerRepository answerRepository;
 
-
-    private final RestTemplate restTemplate;
+    private final UserQuestionLikeRepository userQuestionLikeRepository;
+    private final UserQuestionScrapRepository userQuestionScrapRepository;
+    private final UserAnswerLikeRepository userAnswerLikeRepository;
 
     //질문 등록 메소드
     public Question createQuestion(Long userId, Integer bookId, QuestionRequestDto dto) {
@@ -152,86 +154,104 @@ public class QuestionService {
     }
 
     //질문 상세 조회 + 답변 리스트 조회
-    public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort) {
+    @Transactional(readOnly = true)
+    public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort, Long viewerId) {
         Question question = questionRepository.findById(Math.toIntExact(questionId))
                 .orElseThrow(QuestionNotFoundException::new);
 
-        // 1) 답변 조회 (N+1 방지하려면 fetch join 메서드로 교체 권장)
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
 
-        // 2) 사용자별 그룹핑
+        // 사용자별 그룹핑/정렬 로직 (기존 그대로)
         Map<Long, List<Answer>> grouped = answers.stream()
                 .filter(a -> a.getUser() != null)
                 .collect(Collectors.groupingBy(a -> a.getUser().getUserId()));
 
-        // 3) 상태 우선순위
         Map<String, Integer> stateOrder = Map.of("BEFORE", 0, "READING", 1, "AFTER", 2);
 
-        // 4) 블록 내부 정렬: 상태만 유지(같은 상태 내 순서는 제한 없음)
         Comparator<Answer> innerComparator = Comparator.comparing(
                 (Answer a) -> stateOrder.getOrDefault(
                         Optional.ofNullable(a.getAnswerState()).orElse("").toUpperCase(), 99)
         );
 
-        // 5) 대표값 유틸
         Function<List<Answer>, Integer> maxLikes = list ->
-                list.stream()
-                        .map(Answer::getLikeCount)
-                        .filter(Objects::nonNull)
-                        .max(Integer::compareTo)
-                        .orElse(0);
-
+                list.stream().map(Answer::getLikeCount).filter(Objects::nonNull).max(Integer::compareTo).orElse(0);
         Function<List<Answer>, LocalDateTime> latestCreated = list ->
-                list.stream()
-                        .map(Answer::getCreatedAt)
-                        .filter(Objects::nonNull)
-                        .max(LocalDateTime::compareTo)
+                list.stream().map(Answer::getCreatedAt).filter(Objects::nonNull).max(LocalDateTime::
+                                compareTo)
                         .orElse(LocalDateTime.MIN);
 
-        // 6) 블록 간 정렬기(타이브레이커 포함)
-        Comparator<Map.Entry<Long, List<Answer>>> blockComparator;
-        if ("popular".equalsIgnoreCase(sort)) {
-            // 1) 최대 좋아요 수 DESC
-            // 2) 최신 작성일 DESC (동점 타이브레이커)
-            // 3) userId ASC (최종 안정성)
-            blockComparator = Comparator
-                    .comparing((Map.Entry<Long, List<Answer>> e) -> maxLikes.apply(e.getValue()))
-                    .reversed()
-                    .thenComparing(e -> latestCreated.apply(e.getValue()), Comparator.reverseOrder())
-                    .thenComparing(Map.Entry::getKey);
-        } else {
-            // latest 기본 정렬도 안정성 부여:
-            // 1) 최신 작성일 DESC
-            // 2) 최대 좋아요 수 DESC
-            // 3) userId ASC
-            blockComparator = Comparator
-                    .comparing((Map.Entry<Long, List<Answer>> e) -> latestCreated.apply(e.getValue()), Comparator.reverseOrder())
-                    .thenComparing(e -> maxLikes.apply(e.getValue()), Comparator.reverseOrder())
-                    .thenComparing(Map.Entry::getKey);
-        }
+        Comparator<Map.Entry<Long, List<Answer>>> blockComparator =
+                "popular".equalsIgnoreCase(sort)
+                        ? Comparator.<Map.Entry<Long, List<Answer>>,
+                                Integer>comparing(e -> maxLikes.apply(e.getValue()))
+                        .reversed()
+                        .thenComparing(e -> latestCreated.apply(e.getValue()),
+                                Comparator.reverseOrder())
+                        .thenComparing(Map.Entry::getKey)
+                        : Comparator.<Map.Entry<Long, List<Answer>>, LocalDateTime>comparing(
+                                e -> latestCreated.apply(e.getValue()),
+                                Comparator.reverseOrder())
+                        .thenComparing(e -> maxLikes.apply(e.getValue()),
+                                Comparator.reverseOrder())
+                        .thenComparing(Map.Entry::getKey);
 
-        // 7) 사용자 블록 정렬 + DTO 변환
         List<AnswersByUserDto> answersByUser = grouped.entrySet().stream()
                 .sorted(blockComparator)
                 .map(entry -> {
-                    Long userId = entry.getKey();
-                    User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+                    Long uid = entry.getKey();
+                    User user = userRepository.findById(uid).orElseThrow(UserNotFoundException::new);
 
-                    List<AnswerResponseDto> answerDtos = entry.getValue().stream()
+                    List<AnswerListItemDto> answerDtos = entry.getValue().stream()
                             .sorted(innerComparator)
-                            .map(a -> AnswerResponseDto.from(
-                                    a,
-                                    user.getUserId().toString(),
-                                    Optional.ofNullable(user.getUserNickname()).orElse("알 수 없음"),
-                                    Optional.ofNullable(user.getProfileUrl()).orElse("")
-                            ))
-                            .collect(Collectors.toList());
+                            .map(a -> {
+                                boolean aLiked = false;
+                                if (viewerId != null) {
+                                    aLiked = userAnswerLikeRepository
+                                            .existsByUser_UserIdAndAnswer_AnswerId(viewerId,
+                                                    a.getAnswerId().intValue());
+                                }
+                                return AnswerListItemDto.of(
+                                        a,
+                                        user.getUserId().toString(),
+                                        Optional.ofNullable(user.getUserNickname()).orElse(
+                                                "알 수 없음"),
+                                        Optional.ofNullable(user.getProfileUrl()).orElse(""),
+                                        aLiked
+                                );
+                            })
+                            .toList();
 
                     return new AnswersByUserDto(user, answerDtos);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
-        QuestionResponseDto questionDto = QuestionResponseDto.from(question, answers.size());
+
+        // 질문 isLiked / isScrapped
+        boolean qLiked = false;
+        boolean qScrapped = false;
+        if (viewerId != null) {
+            qLiked = userQuestionLikeRepository
+                    .existsByUser_UserIdAndQuestion_QuestionId(viewerId, question.getQuestionId());
+            qScrapped = userQuestionScrapRepository
+                    .existsByUserIdAndQuestion_QuestionId(viewerId, question.getQuestionId());
+        }
+
+        QuestionListItemDto questionDto = QuestionListItemDto.of(
+                question.getQuestionId(),
+                question.getBook().getBookId(),
+                question.getUser() != null ? question.getUser().getUserId() : null,
+                question.getUser() != null ? question.getUser().getUserNickname() : "사용자",
+                question.getUser() != null ? question.getUser().getProfileUrl() : null,
+                question.getQuestionContent(),
+                answers.size(),                         // 상세 화면: 전체 답변 수
+                question.getLikeCount(),
+                question.getScrapCount(),
+                question.getStatus().name(),
+                question.getCreatedAt(),
+                qLiked,
+                qScrapped
+        );
+
         return new QuestionDetailResponseDto(questionDto, answersByUser);
     }
 

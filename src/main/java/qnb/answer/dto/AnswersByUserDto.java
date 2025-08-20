@@ -16,13 +16,13 @@ public class AnswersByUserDto {
     private Long userId;
     private String userNickname;
     private String profileUrl;
-    private List<AnswerResponseDto> answers;
+    private List<AnswerListItemDto> answers;
 
     // 디폴트 프로필 이미지 S3 URL
     private static final String DEFAULT_PROFILE_URL =
             "https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg";
 
-    public AnswersByUserDto(User user, List<AnswerResponseDto> answers) {
+    public AnswersByUserDto(User user, List<AnswerListItemDto> answers) {
         this.userId = user.getUserId();
         this.userNickname = user.getUserNickname();
         // profileUrl이 null이면 디폴트 이미지 사용

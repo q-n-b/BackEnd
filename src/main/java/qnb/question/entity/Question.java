@@ -98,11 +98,6 @@ public class Question {
         this.lastError = reason;
     }
 
-    // == 편의 메서드 ==
-    public void markGenerating() { this.status = QuestionStatus.GENERATING; }
-    public void markReady(String content) { this.questionContent = content; this.status = QuestionStatus.READY; }
-    public void markFailed() { this.status = QuestionStatus.FAILED; }
-
     public void increaseScrapCount() { this.scrapCount++; }
     public void decreaseScrapCount() { if (this.scrapCount > 0) this.scrapCount--; }
     public void increaseLikeCount() { this.likeCount++; }

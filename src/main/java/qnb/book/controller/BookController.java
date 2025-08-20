@@ -89,7 +89,10 @@ public class BookController {
 
             //도서별 질문 리스트 조회
             case "questions" -> {
-                yield ResponseEntity.ok(bookService.getBookQuestions(bookId, sort, PageRequest.of(page, size)));
+                Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+                yield ResponseEntity.ok(
+                        bookService.getBookQuestions(bookId, sort, PageRequest.of(page, size), userId) // ← 시그니처 변경
+                );
             }
 
             default -> {
