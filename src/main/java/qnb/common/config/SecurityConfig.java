@@ -76,7 +76,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 //개발용
                 "http://localhost:3000",
-                "http://54.252.246.118:3000",
+                "http://3.107.68.205:3000",
 
                 //아이폰
                 "http://192.168.0.109:3000",
