@@ -56,7 +56,8 @@ ml:
   api-key: dev-local-secret-123
   timeouts:
     connect-ms: 3000
-    read-ms: 5000
+    read-ms: 12000
+    client-timeout-sec: 12
 
 
 #S3

@@ -29,7 +29,7 @@ public class MlClientConfig {
     @Value("${ml.timeouts.connect-ms:3000}")
     private int connectMs;
 
-    @Value("${ml.timeouts.read-ms:5000}")
+    @Value("${ml.timeouts.read-ms:12000}")
     private int readMs;
 
     @Bean
