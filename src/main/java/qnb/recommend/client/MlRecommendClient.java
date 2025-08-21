@@ -16,7 +16,7 @@ public class MlRecommendClient {
     //ML 서버로 토큰을 전달(헤더 그대로)하여 호출.
     public MlRecommendResponse recommendBooks(String bearerToken, int topK, MlRecommendRequest body) {
         return mlWebClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/recommend/books")
+                .uri(uri -> uri.path("/api/books/recommend")
                         .queryParam("topK", topK)
                         .build())
                 .header(HttpHeaders.AUTHORIZATION, bearerToken) // "Bearer xxx"
