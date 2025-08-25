@@ -34,6 +34,9 @@ public class UserRecommendedBook {
     @Column(name = "recommended_at")
     private LocalDateTime recommendedAt;
 
+    @Column(name = "score")
+    private Double score; // null 허용
+
     protected UserRecommendedBook() {
     }
 

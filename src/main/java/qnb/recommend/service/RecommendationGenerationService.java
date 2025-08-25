@@ -114,20 +114,26 @@ public class RecommendationGenerationService {
                     log.warn("[RecommendSvc] keywords JSON serialize failed for bookId={}", bookId);
                 }
             }
+            Double score = item.getScore();
+
+            ZoneId KST = ZoneId.of("Asia/Seoul");
 
             UserRecommendedBook urb = UserRecommendedBook.builder()
                     .user(userEntity)
                     .book(bookEntity)
                     .keyword(keywordsJson)
+                    .score(item.getScore()) // score 매핑 추가!
                     .recommendedAt(
                             resp.getGeneratedAt() != null
-                                    ? LocalDateTime.ofInstant(resp.getGeneratedAt(), ZoneId.of("UTC"))
-                                    : LocalDateTime.now(ZoneId.of("UTC"))
+                                    ? LocalDateTime.ofInstant(resp.getGeneratedAt(), KST)
+                                    : LocalDateTime.now(KST)
                     )
                     .build();
 
+
             batch.add(urb);
         }
+
         log.info("[RecommendSvc] BATCH BUILT stage={} size={}", stage, batch.size());
 
         stage = "PERSIST";
