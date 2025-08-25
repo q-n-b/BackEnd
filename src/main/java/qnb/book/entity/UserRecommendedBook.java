@@ -39,11 +39,5 @@ public class UserRecommendedBook {
 
     protected UserRecommendedBook() {
     }
-
-    public UserRecommendedBook(User user, Book book, String keyword) {
-        this.user = user;
-        this.book = book;
-        this.keyword = keyword;
-        this.recommendedAt = LocalDateTime.now();
-    }
+    
 }
