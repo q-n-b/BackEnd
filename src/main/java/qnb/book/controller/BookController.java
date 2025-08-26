@@ -61,10 +61,9 @@ public class BookController {
 
                 Long userId = userDetails.getUserId();
 
-                //개인 추천 도서 1권
+                //개인 추천 도서 1권 랜덤
                 if (limit != null && limit == 1) {
-                    // 주간 확정 있으면 그걸, 없으면 최신 1개 폴백
-                    yield ResponseEntity.ok(bookService.getOneRecommendedBook(userId));
+                    yield ResponseEntity.ok(bookService.getRandomRecommendedBook(userId));
                 }
 
                 //개인 추천 도서 리스트 조회

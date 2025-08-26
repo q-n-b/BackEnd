@@ -27,6 +27,16 @@ public interface UserRecommendedBookRepository extends JpaRepository<UserRecomme
     Optional<UserRecommendedBook> findTopByUser_UserIdAndBook_BookIdOrderByRecommendedAtDesc(
             Long userId, Integer bookId);
 
+    //B메인의 <당신을 위한 추천>에서 사용할 1권 랜덤 추출 메소드
+    @Query("""
+       SELECT r
+       FROM UserRecommendedBook r
+       JOIN FETCH r.book b
+       WHERE r.user.userId = :userId
+       ORDER BY function('RAND')
+    """)
+    List<UserRecommendedBook> findRandomOneByUserId(@Param("userId") Long userId, Pageable pageable);
+
     /**
      * 주간 확정 후보 N건 (이미 읽은 책 제외 + 점수 우선 정렬)
      * - pageable = PageRequest.of(0, 1) 주면 1건만

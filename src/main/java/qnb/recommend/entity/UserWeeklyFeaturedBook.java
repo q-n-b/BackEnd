@@ -26,9 +26,6 @@ public class UserWeeklyFeaturedBook {
     @Column(name="score")
     private Double score;
 
-    @Column(name="source")
-    private String source; // 'TOP_OF_WEEK' or 'FALLBACK_RANDOM'
-
     @Column(name="created_at", nullable=false)
     private LocalDateTime createdAt;
 }

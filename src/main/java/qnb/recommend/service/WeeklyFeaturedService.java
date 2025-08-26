@@ -63,7 +63,6 @@ public class WeeklyFeaturedService {
                 .bookId(pick.getBookId())
                 .weekStartDate(weekStart)
                 .score(pick.getScore())
-                .source(topOpt.isPresent() ? "TOP_OF_WEEK" : "FALLBACK_RANDOM")
                 .createdAt(LocalDateTime.now())
                 .build();
 
