@@ -67,7 +67,7 @@ public class BookController {
                 }
 
                 //개인 추천 도서 리스트 조회
-                yield ResponseEntity.ok(bookService.getRecommendedBooks(userId));
+                yield ResponseEntity.ok(bookService.getMyWeeklyRecommendations(userId));
             }
 
             //카테고리별 추천 도서 조회

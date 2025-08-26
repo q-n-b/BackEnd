@@ -1,5 +1,4 @@
 package qnb.user.dto;
-//나의 책장
 
 import qnb.book.entity.Book;
 

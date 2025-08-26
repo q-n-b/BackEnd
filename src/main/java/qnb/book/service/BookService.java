@@ -2,7 +2,6 @@ package qnb.book.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import qnb.answer.repository.AnswerRepository;
 import qnb.book.dto.*;
 import qnb.book.entity.Book;
@@ -10,7 +9,6 @@ import qnb.book.entity.UserRecommendedBook;
 import qnb.book.repository.BookRepository;
 import qnb.book.repository.UserRecommendedBookRepository;
 import qnb.common.dto.PageInfoDto;
-import qnb.common.exception.UserNotFoundException;
 import qnb.like.repository.UserQuestionLikeRepository;
 import qnb.question.dto.QuestionListItemDto;
 import qnb.question.dto.QuestionListResponseDto;
@@ -22,18 +20,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.LinkedHashMap;
+import qnb.recommend.repository.UserWeeklyFeaturedBookRepository;
 import qnb.scrap.repository.UserQuestionScrapRepository;
 import qnb.user.entity.User;
 import qnb.user.repository.*;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.sql.Date;
-
 
 @Service
 @RequiredArgsConstructor
@@ -43,12 +41,12 @@ public class BookService {
     private final UserRecommendedBookRepository recommendedBookRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
-    private final UserRepository userRepository;
     private final UserBookWishRepository wishRepository;
     private final UserBookReadingRepository readingRepository;
     private final UserBookReadRepository readRepository;
     private final UserQuestionScrapRepository userQuestionScrapRepository;
     private final UserQuestionLikeRepository userQuestionLikeRepository;
+    private final UserWeeklyFeaturedBookRepository userWeeklyFeaturedBookRepository;
 
     public boolean existsById(Integer bookId) {
         return bookRepository.
@@ -70,17 +68,54 @@ public class BookService {
     }
 
     // 2. 개인 추천 도서 리스트 조회
-    public List<BookResponseDto> getRecommendedBooks(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(UserNotFoundException::new);
+    @Transactional(readOnly = true)
+    public MyRecommendationResponseDto getMyWeeklyRecommendations(Long userId) {
+        // UWB + Book 조인으로 평탄화 조회
+        List<WeeklyFeaturedFlatViewDto> flat = userWeeklyFeaturedBookRepository.
+                findAllFlatByUserId(userId);
 
-        List<UserRecommendedBook> list = recommendedBookRepository.findAllByUserOrderByRecommendedAtDesc(user);
+        // YearMonth(yyyy-MM) 기준 그룹핑 (리포지토리에서 이미 최신순)
+        Map<YearMonth, List<WeeklyFeaturedFlatViewDto>> byYm = flat.stream()
+                .collect(Collectors.groupingBy(
+                        v -> YearMonth.from(v.getRecommendedAt()),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
 
-        return list.stream()
-                .map(rec -> new BookResponseDto(rec.getBook()))
-                .toList();
+        List<MyRecommendationYearMonthGroupDto> groups = new ArrayList<>();
+
+        for (Map.Entry<YearMonth, List<WeeklyFeaturedFlatViewDto>> e : byYm.entrySet()) {
+            YearMonth ym = e.getKey();
+
+            // 같은 월 내부는 과거 주차 → 최신 주차
+            List<MyRecommendationBookItemDto> items = e.getValue().stream()
+                    .sorted(Comparator.comparing(WeeklyFeaturedFlatViewDto::getRecommendedAt))
+                    .map(v -> MyRecommendationBookItemDto.builder()
+                            .bookId(v.getBookId())
+                            .isbn13(v.getIsbn13())
+                            .title(v.getTitle())
+                            .author(v.getAuthor())
+                            .imageUrl(v.getImageUrl())
+                            .genre(v.getGenre())
+                            .publisher(v.getPublisher())
+                            .publishedYear(
+                                    v.getPublishedYear() == null ? null :
+                                            String.valueOf(v.getPublishedYear())
+                            )
+                            .recommendedAt(v.getRecommendedAt())
+                            .build())
+                    .toList();
+
+            groups.add(MyRecommendationYearMonthGroupDto.builder()
+                    .yearMonth(ym.toString()) // "yyyy-MM"
+                    .books(items)
+                    .build());
+        }
+
+        return MyRecommendationResponseDto.builder()
+                .recommendedBooks(groups)
+                .build();
     }
-
 
     // 3. 장르별 추천 도서 리스트 조회
     public List<BookResponseDto> getRecommendedBooksByGenre(String genre) {
