@@ -15,11 +15,5 @@ public class MlRecommendRequest {
     @NotNull
     private Long userId;
 
-    /*@Data @NoArgsConstructor @AllArgsConstructor @Builder
-    public static class Context {
-        private List<String> preferredGenres;
-        private List<Long> recentBookIds;
-    }
-    private Context context;*/
 }
 

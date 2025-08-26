@@ -1,4 +1,4 @@
-package qnb.book.dto;
+package qnb.recommend.dto;
 //MY 페이지의 <추천 도서 리스트> 조회용 평탄화 DTO
 
 import lombok.Getter;

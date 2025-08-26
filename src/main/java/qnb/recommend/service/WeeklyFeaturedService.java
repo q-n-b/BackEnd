@@ -6,12 +6,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qnb.common.util.WeekUtils;
 import qnb.recommend.dto.RecommendedPick;
+import qnb.recommend.dto.WeeklyFeaturedDto;
 import qnb.recommend.entity.UserWeeklyFeaturedBook;
 import qnb.book.repository.UserRecommendedBookRepository;
 import qnb.recommend.repository.UserWeeklyFeaturedBookRepository;
 
 import java.time.*;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ public class WeeklyFeaturedService {
     private final UserRecommendedBookRepository recommendedRepo;
     private final UserWeeklyFeaturedBookRepository weeklyRepo;
 
+    //추천 도서 이번주 확정본 생성
     /**
      * 이번 주 사용자 1인의 Featured Book을 확정/저장하고 결과 반환.
      * - 이미 확정되어 있으면 그대로 반환(멱등)
@@ -67,6 +70,14 @@ public class WeeklyFeaturedService {
                 .build();
 
         return weeklyRepo.save(entity);
+    }
+
+    //추천 도서 이번주 확정본 조회
+    @Transactional(readOnly = true)
+    public Optional<WeeklyFeaturedDto> getWeeklyFeatured(Long userId, LocalDate weekStartParam) {
+        LocalDate weekStart = WeekUtils.resolveWeekStart(weekStartParam);
+        return weeklyRepo.findByUserIdAndWeekStartDate(userId, weekStart)
+                .map(WeeklyFeaturedDto::from);
     }
 }
 

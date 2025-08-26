@@ -1,6 +1,7 @@
 package qnb.common.util;
 
 import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 
 import static java.time.temporal.TemporalAdjusters.previousOrSame;
 import static java.time.DayOfWeek.MONDAY;
@@ -26,6 +27,13 @@ public final class WeekUtils {
     }
     public static ZonedDateTime nextWeekStartZdt() {
         return nextWeekMondayKST().atStartOfDay(KST);
+    }
+
+    /**파라미터가 null이면 "지금(KST) 기준 이번 주 월요일",
+        값이 있으면 해당 날짜의 "그 주 월요일"로 정규화 **/
+    public static LocalDate resolveWeekStart(LocalDate param) {
+        LocalDate base = (param != null) ? param : LocalDate.now(KST);
+        return base.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
 }
 

@@ -21,6 +21,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashMap;
+
+import qnb.recommend.dto.MyRecommendationBookItemDto;
+import qnb.recommend.dto.MyRecommendationResponseDto;
+import qnb.recommend.dto.MyRecommendationYearMonthGroupDto;
+import qnb.recommend.dto.WeeklyFeaturedFlatViewDto;
 import qnb.recommend.repository.UserWeeklyFeaturedBookRepository;
 import qnb.scrap.repository.UserQuestionScrapRepository;
 import qnb.user.entity.User;
