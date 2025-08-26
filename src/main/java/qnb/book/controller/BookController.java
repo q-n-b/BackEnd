@@ -49,9 +49,6 @@ public class BookController {
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         return switch (type) {
-
-            // 사용자의 ‘이번 주 확정 1권’을 우선 반환. 주간 확정이 없으면 추천 풀의 최신 1권으로 폴백.
-            // - 데이터 출처: user_weekly_featured_book → 없으면 user_recommended_book
             case "recommendations" -> {
 
                 // 로그인 안 되어 있으면 401
