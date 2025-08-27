@@ -83,6 +83,7 @@ public class SecurityConfig {
                 "http://192.168.0.17:3000",
 
                 //운영용
+                "http://qnb.duckdns.org",
                 "https://qnb.duckdns.org"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
