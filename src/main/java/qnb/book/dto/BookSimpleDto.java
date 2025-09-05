@@ -13,7 +13,7 @@ import qnb.book.entity.Book;
 @AllArgsConstructor
 public class BookSimpleDto {
     private Integer bookId;
-    private String bookTitle;
+    private String Title;
     private String imageUrl;
     private String author;
     private String publisher;
@@ -26,7 +26,7 @@ public class BookSimpleDto {
 
         return BookSimpleDto.builder()
                 .bookId(book.getBookId() != null ? book.getBookId() : null)
-                .bookTitle(book.getTitle() != null ? book.getTitle() : "")
+                .Title(book.getTitle() != null ? book.getTitle() : "")
                 .imageUrl(book.getImageUrl() != null ? book.getImageUrl() : "")
                 .author(book.getAuthor() != null ? book.getAuthor() : "")
                 .publisher(book.getPublisher() != null ? book.getPublisher() : "")
