@@ -1,6 +1,4 @@
 package qnb.like.dto;
-//질문 1개에 대한 정보 DTO
-//질문 ID, 내용, 좋아요/스크랩 여부 등 하나의 질문에 대한 정보만 담음
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import lombok.AccessLevel;
@@ -42,6 +40,10 @@ public class LikeQuestionDto {
     }
 
     private LocalDateTime createdAt;
+
+    // ✅ 추가된 필드
+    private String status;
+
     private BookSimpleDto book;
 
     // 디폴트 프로필 이미지 S3 URL
@@ -61,7 +63,6 @@ public class LikeQuestionDto {
                 .answerCount(q.getAnswerCount())
                 .userId(q.getUser() != null ? q.getUser().getUserId() : null)
                 .userNickname(q.getUser() != null ? q.getUser().getUserNickname() : null)
-                // profileUrl이 null 또는 빈 문자열이면 디폴트 이미지 적용
                 .profileUrl(
                         (q.getUser() != null && q.getUser().getProfileUrl() != null && !q.getUser().getProfileUrl().isEmpty())
                                 ? q.getUser().getProfileUrl()
@@ -70,6 +71,7 @@ public class LikeQuestionDto {
                 .isScrapped(isScrapped)
                 .isLiked(isLiked)
                 .createdAt(q.getCreatedAt())
+                .status(q.getStatus() != null ? q.getStatus().name() : null)
                 .book(q.getBook() != null ? BookSimpleDto.from(q.getBook()) : null)
                 .build();
     }
