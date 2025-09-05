@@ -1,0 +1,78 @@
+server:
+  port: 8080  # 기본 포트, 프론트나 Postman에서 요청 시 이 포트로 요청
+  address: 0.0.0.0  # 외부에서도 접근 가능하도록 설정
+  forward-headers-strategy: framework
+
+spring:
+  http:
+    client:
+      factory: jdk
+  mvc:
+    dispatch-options-request: true
+    web:
+      resources:
+        add-mappings: true
+
+  # 실제 사용하는 내 DB
+  datasource:
+    url: jdbc:mysql://qnb-database.cjqc84a84hgy.ap-southeast-2.rds.amazonaws.com:3306/qnb_database
+    username: admin
+    password: "Dang1216"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # 개발 중에는 update, 배포 시에는 validate 또는 none 권장
+      jdbc:
+        time_zone: Asia/Seoul
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true  # SQL 쿼리를 예쁘게 출력
+        dialect: org.hibernate.dialect.MySQL8Dialect  # MySQL8 전용 방언
+        globally_quoted_identifiers: true
+        naming:
+          physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+
+  jackson:
+    time-zone: Asia/Seoul
+    serialization:
+      fail-on-empty-beans: false  # Bean에 필드가 없어도 직렬화 오류 발생하지 않도록 설정
+
+    # JWT 설정 (보안 키와 만료 시간)
+    jwt:
+    secret: my-very-secret-jwt-key-that-should-be-long
+    expiration: 3600000  # 만료 시간 (1시간 = 3600000ms)
+
+# 알라딘 오픈 API 키 (외부 도서 데이터 수집용)
+aladin:
+  ttbkey: ttbsally1023p1354001
+
+#ML 서버 IP
+ml:
+  server:
+    url: http://127.0.0.1:5000   # 같은 EC2에서 구동 시
+  api-key: dev-local-secret-123
+  timeouts:
+    connect-ms: 3000
+    read-ms: 12000
+    client-timeout-sec: 12
+
+
+#S3
+cloud:
+  aws:
+    credentials:
+      access-key: AKIASDRANPYT7VBWZH4O
+      secret-key: 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
+    region:
+      static: ap-southeast-2
+    s3:
+      bucket: qnb-profile-images
+
+#S3 디폴트 프로필 URL
+qnb:
+  profile:
+    default-url: https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg
+
