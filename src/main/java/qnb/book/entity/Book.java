@@ -2,6 +2,7 @@ package qnb.book.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.Formula;
 
 @Entity
 @Data
@@ -38,7 +39,9 @@ public class Book {
     @Column(name = "sales_point")
     private Integer salesPoint; //판매 지수
 
+
     @Column(name = "question_count")
+    @Formula("(select count(q.question_id) from question q where q.book_id = book_id /* and q.status='ACTIVE' */)")
     private int questionCount;
 
     @Column(name = "scrap_count", nullable = false)

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import qnb.question.entity.Question;
+import qnb.question.repository.projection.BookQuestionCount;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,15 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     // 계정 탈퇴에서 사용되는 메소드
     void deleteByUser_UserId(Long userId);
+
+    //도서 전체보기에서 사용되는 질문 개수 집계용
+    @Query("""
+        SELECT q.book.bookId AS bookId, COUNT(q) AS questionCount
+        FROM Question q
+        WHERE q.book.bookId IN :bookIds
+        GROUP BY q.book.bookId
+    """)
+    List<BookQuestionCount> countByBookIds(@Param("bookIds") List<Long> bookIds);
 
     //-----GPT 관련 메소드-----
     // GPT 시스템 사용자 기준 단건 조회

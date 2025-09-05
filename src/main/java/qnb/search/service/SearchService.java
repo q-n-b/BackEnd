@@ -17,6 +17,7 @@ import qnb.question.dto.QuestionPageResponseDto;
 import qnb.question.dto.QuestionSimpleDto;
 import qnb.question.entity.Question;
 import qnb.question.repository.QuestionRepository;
+import qnb.question.repository.projection.BookQuestionCount;
 import qnb.question.service.QuestionService;
 import qnb.search.dto.Full.*;
 import qnb.search.dto.SummarySearchResponseDto;
@@ -30,6 +31,8 @@ import qnb.user.entity.User;
 import qnb.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -120,9 +123,32 @@ public class SearchService {
         if (type.equals("BOOK")) {
             Page<Book> books = bookRepository.searchBooks(keyword, pageable);
 
+            // 1) 현재 페이지의 bookId 리스트
+            List<Long> bookIds = books.getContent().stream()
+                    .map(b -> b.getBookId().longValue())
+                    .toList();
+
+            // 2) 질문 수를 한 번에 집계해서 Map으로
+            Map<Long, Long> questionCountMap = questionRepository.countByBookIds(bookIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            BookQuestionCount::getBookId,
+                            BookQuestionCount::getQuestionCount
+                    ));
+
+            // 3) DTO로 변환할 때 집계값을 주입 (없으면 0)
             return new BookSearchResponseDto(
                     books.getContent().stream()
-                            .map(book -> BookSearchOneDto.from(book, book.getScrapCount()))
+                            .map(book -> {
+                                int qCount = questionCountMap
+                                        .getOrDefault(book.getBookId().longValue(), 0L)
+                                        .intValue();
+                                return BookSearchOneDto.from(
+                                        book,
+                                        book.getScrapCount(),
+                                        qCount
+                                );
+                            })
                             .toList(),
                     new PageInfoDto(
                             safePage,
@@ -130,7 +156,6 @@ public class SearchService {
                             (int) books.getTotalElements()
                     )
             );
-
         }
 
         //2. 질문 검색 결과

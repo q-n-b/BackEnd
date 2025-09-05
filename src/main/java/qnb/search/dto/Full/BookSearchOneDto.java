@@ -1,3 +1,4 @@
+// src/main/java/qnb/search/dto/Full/BookSearchOneDto.java
 package qnb.search.dto.Full;
 
 import lombok.AllArgsConstructor;
@@ -22,7 +23,7 @@ public class BookSearchOneDto {
 
     public static BookSearchOneDto from(Book book, int scrapCount) {
         return new BookSearchOneDto(
-                book.getBookId().longValue(),  // 만약 Integer면 longValue() 필요
+                book.getBookId().longValue(),
                 book.getIsbn13(),
                 book.getTitle(),
                 book.getAuthor(),
@@ -35,8 +36,18 @@ public class BookSearchOneDto {
         );
     }
 
+    public static BookSearchOneDto from(Book book, int scrapCount, int questionCount) {
+        return new BookSearchOneDto(
+                book.getBookId().longValue(),
+                book.getIsbn13(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getPublishedYear(),
+                book.getPublisher(),
+                book.getImageUrl(),
+                book.getGenre(),
+                questionCount,
+                scrapCount
+        );
+    }
 }
-
-
-
-
