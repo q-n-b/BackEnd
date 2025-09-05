@@ -12,6 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuestionDetailResponseDto {
-    private QuestionListItemDto question;
+    private QuestionDetailHeaderDto question;
     private List<AnswersByUserDto> answersByUser;
 }

@@ -1,6 +1,7 @@
 package qnb.user.service;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 import qnb.answer.repository.AnswerRepository;
@@ -19,10 +20,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -120,7 +122,6 @@ public class UserService {
         if (profileImage.getSize() > (5 * 1024 * 1024)) {
             throw new FileSizeExceededException();
         }
-
         User user = userRepository.findById(userId)
                 .orElseThrow(LoginRequiredException::new);
 
@@ -162,12 +163,12 @@ public class UserService {
 
         // S3에서 기존 이미지 삭제
         try {
-            String fileUrl = user.getProfileUrl();
-            String key = fileUrl.substring(fileUrl.indexOf(bucket) + bucket.length() + 5);
-            // "bucket.s3." 이후 경로 추출
-            s3Client.deleteObject(builder -> builder.bucket(bucket).key(key).build());
+            URI uri = URI.create(user.getProfileUrl());
+            String key = uri.getPath().substring(1); // "/user/profile/abc.png" → "user/profile/abc.png"
+            s3Client.deleteObject(b -> b.bucket(bucket).key(key));
         } catch (Exception e) {
-            throw new ProfileDeleteFailedException();
+            log.error("프로필 이미지 삭제 실패", e); // 로그 남기기
+            throw new ProfileDeleteFailedException("프로필 이미지 삭제 실패"); // 메시지 꼭 넣기
         }
 
         // DB 업데이트 (기본 이미지로 변경)

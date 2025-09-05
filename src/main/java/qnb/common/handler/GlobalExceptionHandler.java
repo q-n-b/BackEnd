@@ -258,10 +258,11 @@ public class GlobalExceptionHandler {
     //프로필 이미지 삭제시 서버 에러
     @ExceptionHandler(ProfileDeleteFailedException.class)
     public ResponseEntity<Map<String, String>> handleProfileDeleteFailed(ProfileDeleteFailedException ex) {
+        String msg = ex.getMessage() != null ? ex.getMessage() : "프로필 이미지 삭제 중 오류가 발생했습니다.";
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                         "errorCode", "PROFILE_DELETE_FAILED",
-                        "message", ex.getMessage()
+                        "message", msg
                 ));
     }
 

@@ -13,6 +13,15 @@ import java.util.Optional;
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
     List<Question> findByUser_UserId(Long userId);
 
+    @Query("""
+        SELECT q
+        FROM Question q
+        JOIN FETCH q.book b
+        JOIN FETCH q.user u
+        WHERE q.questionId = :id
+    """)
+    Optional<Question> findWithBookAndUserById(@Param("id") Integer id);
+
     @Query("SELECT q FROM Question q WHERE LOWER(q.questionContent) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Question> findQuestionsForSummary(@Param("keyword") String keyword);
 

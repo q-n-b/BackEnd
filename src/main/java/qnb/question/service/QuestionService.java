@@ -6,6 +6,7 @@ import qnb.answer.dto.AnswerListItemDto;
 import qnb.answer.dto.AnswerResponseDto;
 import qnb.answer.dto.AnswersByUserDto;
 import qnb.answer.entity.Answer;
+import qnb.book.dto.BookSimpleDto;
 import qnb.book.entity.Book;
 import qnb.book.repository.BookRepository;
 import qnb.common.dto.PageInfoDto;
@@ -153,15 +154,16 @@ public class QuestionService {
         return new QuestionPageResponseDto(questions, pageInfoDto);
     }
 
-    //질문 상세 조회 + 답변 리스트 조회
+    // 질문 상세 조회 + 답변 리스트 조회
     @Transactional(readOnly = true)
     public QuestionDetailResponseDto getQuestionDetail(Long questionId, String sort, Long viewerId) {
-        Question question = questionRepository.findById(Math.toIntExact(questionId))
+        // 질문 + 책 + 유저 fetch join
+        Question question = questionRepository.findWithBookAndUserById(Math.toIntExact(questionId))
                 .orElseThrow(QuestionNotFoundException::new);
 
+        // 답변 조회 후 사용자별 그룹핑
         List<Answer> answers = answerRepository.findByQuestion_QuestionId(questionId);
 
-        // 사용자별 그룹핑/정렬 로직 (기존 그대로)
         Map<Long, List<Answer>> grouped = answers.stream()
                 .filter(a -> a.getUser() != null)
                 .collect(Collectors.groupingBy(a -> a.getUser().getUserId()));
@@ -176,30 +178,26 @@ public class QuestionService {
         Function<List<Answer>, Integer> maxLikes = list ->
                 list.stream().map(Answer::getLikeCount).filter(Objects::nonNull).max(Integer::compareTo).orElse(0);
         Function<List<Answer>, LocalDateTime> latestCreated = list ->
-                list.stream().map(Answer::getCreatedAt).filter(Objects::nonNull).max(LocalDateTime::
-                                compareTo)
-                        .orElse(LocalDateTime.MIN);
+                list.stream().map(Answer::getCreatedAt).filter(Objects::nonNull)
+                        .max(LocalDateTime::compareTo).orElse(LocalDateTime.MIN);
 
         Comparator<Map.Entry<Long, List<Answer>>> blockComparator =
                 "popular".equalsIgnoreCase(sort)
-                        ? Comparator.<Map.Entry<Long, List<Answer>>,
-                                Integer>comparing(e -> maxLikes.apply(e.getValue()))
+                        ? Comparator.<Map.Entry<Long, List<Answer>>, Integer>comparing(e -> maxLikes.apply(e.getValue()))
                         .reversed()
-                        .thenComparing(e -> latestCreated.apply(e.getValue()),
-                                Comparator.reverseOrder())
+                        .thenComparing(e -> latestCreated.apply(e.getValue()), Comparator.reverseOrder())
                         .thenComparing(Map.Entry::getKey)
                         : Comparator.<Map.Entry<Long, List<Answer>>, LocalDateTime>comparing(
-                                e -> latestCreated.apply(e.getValue()),
-                                Comparator.reverseOrder())
-                        .thenComparing(e -> maxLikes.apply(e.getValue()),
-                                Comparator.reverseOrder())
+                                e -> latestCreated.apply(e.getValue()), Comparator.reverseOrder())
+                        .thenComparing(e -> maxLikes.apply(e.getValue()), Comparator.reverseOrder())
                         .thenComparing(Map.Entry::getKey);
 
         List<AnswersByUserDto> answersByUser = grouped.entrySet().stream()
                 .sorted(blockComparator)
                 .map(entry -> {
                     Long uid = entry.getKey();
-                    User user = userRepository.findById(uid).orElseThrow(UserNotFoundException::new);
+                    User user = userRepository.findById(uid)
+                            .orElseThrow(UserNotFoundException::new);
 
                     List<AnswerListItemDto> answerDtos = entry.getValue().stream()
                             .sorted(innerComparator)
@@ -213,8 +211,7 @@ public class QuestionService {
                                 return AnswerListItemDto.of(
                                         a,
                                         user.getUserId().toString(),
-                                        Optional.ofNullable(user.getUserNickname()).orElse(
-                                                "알 수 없음"),
+                                        Optional.ofNullable(user.getUserNickname()).orElse("알 수 없음"),
                                         Optional.ofNullable(user.getProfileUrl()).orElse(""),
                                         aLiked
                                 );
@@ -225,8 +222,7 @@ public class QuestionService {
                 })
                 .toList();
 
-
-        // 질문 isLiked / isScrapped
+        // 질문 좋아요/스크랩 여부
         boolean qLiked = false;
         boolean qScrapped = false;
         if (viewerId != null) {
@@ -236,23 +232,29 @@ public class QuestionService {
                     .existsByUserIdAndQuestion_QuestionId(viewerId, question.getQuestionId());
         }
 
-        QuestionListItemDto questionDto = QuestionListItemDto.of(
-                question.getQuestionId(),
-                question.getBook().getBookId(),
-                question.getUser() != null ? question.getUser().getUserId() : null,
-                question.getUser() != null ? question.getUser().getUserNickname() : "사용자",
-                question.getUser() != null ? question.getUser().getProfileUrl() : null,
-                question.getQuestionContent(),
-                answers.size(),                         // 상세 화면: 전체 답변 수
-                question.getLikeCount(),
-                question.getScrapCount(),
-                question.getStatus().name(),
-                question.getCreatedAt(),
-                qLiked,
-                qScrapped
-        );
+        //  상세 전용 DTO 매핑
+        QuestionDetailHeaderDto header = QuestionDetailHeaderDto.builder()
+                .questionId(question.getQuestionId())
+                .userId(question.getUser() != null ? question.getUser().getUserId() : null)
+                .userNickname(question.getUser() != null ? question.getUser().getUserNickname() : "사용자")
+                .profileUrl(
+                        (question.getUser() != null && question.getUser().getProfileUrl() != null
+                                && !question.getUser().getProfileUrl().isEmpty())
+                                ? question.getUser().getProfileUrl()
+                                : "https://qnb-profile-images.s3.ap-southeast-2.amazonaws.com/default/profile.jpeg"
+                )
+                .questionContent(question.getQuestionContent())
+                .answerCount(answers.size())
+                .likeCount(question.getLikeCount())
+                .scrapCount(question.getScrapCount())
+                .status(question.getStatus().name())
+                .createdAt(question.getCreatedAt())
+                .isLiked(qLiked)
+                .isScrapped(qScrapped)
+                .book(BookSimpleDto.from(question.getBook())) // 상세에서만 책 정보 포함
+                .build();
 
-        return new QuestionDetailResponseDto(questionDto, answersByUser);
+        return new QuestionDetailResponseDto(header, answersByUser);
     }
 
 }
