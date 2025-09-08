@@ -2,6 +2,7 @@
 package qnb.recommend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qnb.common.util.WeekUtils;
@@ -32,35 +33,41 @@ public class WeeklyFeaturedService {
      */
     @Transactional
     public UserWeeklyFeaturedBook upsertThisWeekFeatured(Long userId) {
-        var weekStart = WeekUtils.thisWeekMondayKST();                 // LocalDate
-        var startZdt  = WeekUtils.thisWeekStartZdt();                   // ZonedDateTime
-        var endZdt    = WeekUtils.nextWeekStartZdt();
+        var weekStart = WeekUtils.thisWeekMondayKST(); // LocalDate (KST 기준)
+        var startZdt  = WeekUtils.thisWeekStartZdt();  // 이번 주 월요일 00:00 KST
+        var endZdt    = WeekUtils.nextWeekStartZdt();  // 다음 주 월요일 00:00 KST
 
         // 1) 이미 확정되어 있으면 반환 (멱등성)
         var existing = weeklyRepo.findByUserIdAndWeekStartDate(userId, weekStart);
         if (existing.isPresent()) return existing.get();
 
-        // 2) 이번 주 캐시에서 최고점 1건
-        var topOpt = recommendedRepo.pickTopOfWeek(
+        // 2) 이번 주 캐시에서 최고점 1건 (Pageable로 제한)
+        var topList = recommendedRepo.pickTopOfWeek(
                 userId,
                 startZdt.toLocalDateTime(),
-                endZdt.toLocalDateTime()
+                endZdt.toLocalDateTime(),
+                PageRequest.of(0, 1)
         );
 
-        RecommendedPick pick = topOpt.orElseGet(() -> {
-            // 3) 랜덤 폴백(이번 주 캐시에서)
-            List<RecommendedPick> randoms = recommendedRepo.pickRandomOfWeek(
-                    userId, startZdt.toLocalDateTime(), endZdt.toLocalDateTime()
+        RecommendedPick pick = topList.isEmpty() ? null : topList.get(0);
+
+        // 3) 랜덤 폴백(이번 주 캐시에서) - 역시 1건만
+        if (pick == null) {
+            var randoms = recommendedRepo.pickRandomOfWeek(
+                    userId,
+                    startZdt.toLocalDateTime(),
+                    endZdt.toLocalDateTime(),
+                    PageRequest.of(0, 1)
             );
-            return randoms.isEmpty() ? null : randoms.get(0);
-        });
+            pick = randoms.isEmpty() ? null : randoms.get(0);
+        }
 
         if (pick == null) {
-            // 이번 주 캐시에 아무것도 없다 → 상위에서 재적재(or 사용자에게 안내)하도록 null
+            // 이번 주 캐시에 아무것도 없다 → 상위 컨트롤러에서 409 등으로 처리
             return null;
         }
 
-        // 4) 저장
+        // 4) 저장 (동시성 유니크 충돌 시 멱등 재조회)
         var entity = UserWeeklyFeaturedBook.builder()
                 .userId(userId)
                 .bookId(pick.getBookId())
@@ -69,7 +76,12 @@ public class WeeklyFeaturedService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return weeklyRepo.save(entity);
+        try {
+            return weeklyRepo.save(entity);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return weeklyRepo.findByUserIdAndWeekStartDate(userId, weekStart)
+                    .orElseThrow(() -> e);
+        }
     }
 
     //추천 도서 이번주 확정본 조회

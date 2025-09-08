@@ -1,5 +1,6 @@
 package qnb.book.repository;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -75,24 +76,26 @@ public interface UserRecommendedBookRepository extends JpaRepository<UserRecomme
      * - 필드/별칭: bookId, score, recommendedAt (RecommendedPick과 동일)
      */
     @Query("""
-      SELECT
-        r.book.bookId     AS bookId,
-        r.score           AS score,
-        r.recommendedAt   AS recommendedAt
-      FROM UserRecommendedBook r
-      WHERE r.user.userId = :userId
-        AND r.recommendedAt >= :from AND r.recommendedAt < :to
-      ORDER BY
-        CASE WHEN r.score IS NULL THEN 1 ELSE 0 END,
-        r.score DESC,
-        r.recommendedAt DESC,
-        r.book.bookId ASC
-      """)
-    Optional<RecommendedPick> pickTopOfWeek(
+  SELECT
+    r.book.bookId   AS bookId,
+    r.score         AS score,
+    r.recommendedAt AS recommendedAt
+  FROM UserRecommendedBook r
+  WHERE r.user.userId = :userId
+    AND r.recommendedAt >= :from AND r.recommendedAt < :to
+  ORDER BY
+    CASE WHEN r.score IS NULL THEN 1 ELSE 0 END,
+    r.score DESC,
+    r.recommendedAt DESC,
+    r.book.bookId ASC
+  """)
+    List<RecommendedPick> pickTopOfWeek(
             @Param("userId") Long userId,
             @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to
+            @Param("to") LocalDateTime to,
+            Pageable pageable
     );
+
 
     /**
      * 랜덤 fallback (이번 주 캐시 중)
@@ -111,6 +114,6 @@ public interface UserRecommendedBookRepository extends JpaRepository<UserRecomme
     List<RecommendedPick> pickRandomOfWeek(
             @Param("userId") Long userId,
             @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to
-    );
+            @Param("to") LocalDateTime to,
+            PageRequest pageRequest);
 }
