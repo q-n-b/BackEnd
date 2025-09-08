@@ -42,6 +42,13 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        //보호 경로
+                        .requestMatchers(HttpMethod.GET,  "/api/books/weekly-featured").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/books/weekly-featured").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
+                        .requestMatchers("/api/users/preferences").authenticated()
+                        .requestMatchers("/api/users/me").authenticated()
+
                         //공개 경로
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/users/signup", "/api/users/login").permitAll()
@@ -52,10 +59,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/books/*/generate-question").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/questions/*/retry").permitAll()
 
-                        //보호 경로
-                        .requestMatchers(HttpMethod.POST, "/api/books/*/questions").authenticated()
-                        .requestMatchers("/api/users/preferences").authenticated()
-                        .requestMatchers("/api/users/me").authenticated()
 
                         .anyRequest().permitAll() // 기타 경로 허용 (필요 시 제한 가능)
                 )
