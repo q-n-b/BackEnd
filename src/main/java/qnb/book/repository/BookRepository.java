@@ -23,10 +23,15 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     List<Book> findBooksForSummary(@Param("keyword") String keyword);
 
     //키워드로 책 검색 (full버전)
-    @Query("SELECT b FROM Book b " +
+    /*@Query("SELECT b FROM Book b " +
             "WHERE b.title LIKE %:keyword% " +
             "OR b.author LIKE %:keyword% " +
             "OR b.genre LIKE %:keyword%")
+    Page<Book> searchBooks(@Param("keyword") String keyword, Pageable pageable);*/
+
+    @Query("SELECT b FROM Book b " +
+            "WHERE (:keyword IS NULL OR :keyword = '' OR " +
+            "b.title LIKE %:keyword% OR b.author LIKE %:keyword% OR b.genre LIKE %:keyword%)")
     Page<Book> searchBooks(@Param("keyword") String keyword, Pageable pageable);
 
 }

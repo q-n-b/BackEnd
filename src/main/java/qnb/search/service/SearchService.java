@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static io.micrometer.common.util.StringUtils.isBlank;
+
 @Service
 @RequiredArgsConstructor
 public class SearchService {
@@ -44,7 +46,8 @@ public class SearchService {
     private final QuestionService questionService;
     private final UserRepository userRepository;
 
-    //요약 버전 생성하는 메소드
+    //======검색 결과 Summary 버전 생성하는 메소드======
+    //도서 검색 결과 요약버전 조회 메소드
     public BookSummaryDto createBookSummary(String keyword) {
         List<Book> books = bookRepository.findBooksForSummary(keyword);
 
@@ -61,6 +64,7 @@ public class SearchService {
         return new BookSummaryDto(books.size(), previewList);
     }
 
+    //질문 검색결과 요약버전 조회 메소드
     public QuestionSummaryDto createQuestionSummary(String keyword) {
         List<Question> questions = questionRepository.findQuestionsForSummary(keyword);
 
@@ -78,6 +82,7 @@ public class SearchService {
         return new QuestionSummaryDto(questions.size(), previewList);
     }
 
+    //답변 검색 결과 요약버전 조회 메소드
     public AnswerSummaryDto createAnswerSummary(String keyword) {
         List<Answer> answers = answerRepository.findAnswersForSummary(keyword);
 
@@ -99,7 +104,7 @@ public class SearchService {
         return new AnswerSummaryDto(answers.size(), previewList);
     }
 
-
+    //통합 검색 요약 조회 메소드
     public SummarySearchResponseDto searchSummary(String keyword) {
         return new SummarySearchResponseDto(
                 createBookSummary(keyword),
@@ -108,27 +113,54 @@ public class SearchService {
         );
     }
 
-    //----------------------------------------------------------
-    // full 버전 검색하는 메소드
+    //도서 정렬 메소드
+    private Sort buildBookSort(String sort) {
+        if ("popular".equalsIgnoreCase(sort)) {
+            // 인기순 = scrapCount
+            return Sort.by(Sort.Order.desc("scrapCount"));
+        }
+        // 기본은 최신순
+        return Sort.by(Sort.Order.desc("publishedYear"));
+    }
+
+    //질문 정렬 메소드
+    private Sort buildQuestionSort(String sort) {
+        if ("popular".equalsIgnoreCase(sort)) {
+            // 인기순 = likeCount + scrapCount + answerCount
+            return Sort.by(
+                    Sort.Order.desc("likeCount"),
+                    Sort.Order.desc("scrapCount"),
+                    Sort.Order.desc("createdAt")
+            );
+        }
+        // 기본은 최신순
+        return Sort.by(Sort.Order.desc("createdAt"));
+    }
+
+
+    //======검색 결과 FULL 버전 생성하는 메소드======
     public Object searchFull(String type, String keyword, int page, int size, String sort) {
         int safePage = Math.max(page, 1); //1부터 시작하는 페이지 번호 (최소 1), currentPage 초기값 1
         int safeSize = Math.min(Math.max(size, 1), 50); //한 페이지당 항목 개수 (1 ~ 50 사이 제한)
 
-        Pageable pageable = PageRequest.of(
-                safePage-1, //스프링은 0부터 시작하니까
-                safeSize,
-                Sort.unsorted());
-
         //1. 책 검색 결과
-        if (type.equals("BOOK")) {
-            Page<Book> books = bookRepository.searchBooks(keyword, pageable);
+        if ("BOOK".equals(type)) {
+            Sort sortSpec = buildBookSort(sort);
+            Pageable pageable = PageRequest.of(safePage - 1, safeSize, sortSpec);
+
+            Page<Book> books;
+            if (isBlank(keyword)) {
+                books = bookRepository.findAll(pageable);
+            } else {
+                books = bookRepository.searchBooks(keyword, pageable);
+            }
 
             // 1) 현재 페이지의 bookId 리스트
             List<Long> bookIds = books.getContent().stream()
                     .map(b -> b.getBookId().longValue())
                     .toList();
 
-            // 2) 질문 수를 한 번에 집계해서 Map으로
+            // 2) 질문 수 집계 (book_id → count)
             Map<Long, Long> questionCountMap = questionRepository.countByBookIds(bookIds)
                     .stream()
                     .collect(Collectors.toMap(
@@ -136,7 +168,7 @@ public class SearchService {
                             BookQuestionCount::getQuestionCount
                     ));
 
-            // 3) DTO로 변환할 때 집계값을 주입 (없으면 0)
+            // 3) DTO 변환
             return new BookSearchResponseDto(
                     books.getContent().stream()
                             .map(book -> {
@@ -159,97 +191,73 @@ public class SearchService {
         }
 
         //2. 질문 검색 결과
-        else if (type.equals("QUESTION")) {
-            // 키워드 없을 때
-            if (keyword == null || keyword.trim().isEmpty()) {
-                QuestionPageResponseDto recentResult = questionService.getRecentQuestions(safePage, safeSize);
+        else if ("QUESTION".equals(type)) {
+            Sort sortSpec = buildQuestionSort(sort);
+            Pageable pageable = PageRequest.of(safePage - 1, safeSize, sortSpec);
 
-                List<QuestionSearchOneDto> resultList = recentResult.getQuestions().stream()
-                        .map(q -> {
-                            int realAnswerCount = answerRepository.countByQuestion_QuestionId(q.getQuestionId().longValue());
-
-                            return new QuestionSearchOneDto(
-                                    q.getQuestionId().longValue(),
-                                    q.getQuestionContent(),
-                                    new BookSimpleDto(
-                                            q.getBook().getBookId(),
-                                            q.getBook().getTitle(),
-                                            q.getBook().getImageUrl(),
-                                            q.getBook().getAuthor(),
-                                            q.getBook().getPublisher(),
-                                            q.getBook().getPublishedYear()
-                                    ),
-                                    realAnswerCount, // 실시간 답변 수
-                                    q.getLikeCount(),
-                                    q.getScrapCount(),
-                                    q.getUserNickname(),
-                                    q.getProfileUrl()
-                            );
-                        })
-                        .toList();
-
-                return new QuestionSearchResponseDto(
-                        resultList,
-                        recentResult.getPageInfoDto()
-                );
+            Page<Question> questions;
+            if (isBlank(keyword)) {
+                //키워드 없을 때
+                questions = questionRepository.findAll(pageable);
+            } else {
+                //키워드 있을 때
+                questions = questionRepository.searchQuestions(keyword, pageable);
             }
 
-            // 키워드 존재할 때
-            else {
-                Page<Question> questions = questionRepository.searchQuestions(keyword, pageable);
+            List<QuestionSearchOneDto> resultList = questions.getContent().stream()
+                    .map(q -> {
+                        int realAnswerCount = answerRepository.countByQuestion_QuestionId(
+                                q.getQuestionId().longValue());
 
-                List<QuestionSearchOneDto> resultList = questions.getContent().stream()
-                        .map(q -> {
-                            int realAnswerCount = answerRepository.countByQuestion_QuestionId(q.getQuestionId().longValue());
+                        return new QuestionSearchOneDto(
+                                q.getQuestionId().longValue(),
+                                q.getQuestionContent(),
+                                new BookSimpleDto(
+                                        q.getBook().getBookId(),
+                                        q.getBook().getTitle(),
+                                        q.getBook().getImageUrl(),
+                                        q.getBook().getAuthor(),
+                                        q.getBook().getPublisher(),
+                                        q.getBook().getPublishedYear()
+                                ),
+                                realAnswerCount,
+                                q.getLikeCount(),
+                                q.getScrapCount(),
+                                q.getUser().getUserNickname(),
+                                q.getUser().getProfileUrl()
+                        );
+                    })
+                    .toList();
 
-                            return new QuestionSearchOneDto(
-                                    q.getQuestionId().longValue(),
-                                    q.getQuestionContent(),
-                                    new BookSimpleDto(
-                                            q.getBook().getBookId(),
-                                            q.getBook().getTitle(),
-                                            q.getBook().getImageUrl(),
-                                            q.getBook().getAuthor(),
-                                            q.getBook().getPublisher(),
-                                            q.getBook().getPublishedYear()
-                                    ),
-                                    realAnswerCount, // 실시간 답변 수
-                                    q.getLikeCount(),
-                                    q.getScrapCount(),
-                                    q.getUser().getUserNickname(),
-                                    q.getUser().getProfileUrl()
-                            );
-                        })
-                        .toList();
-
-                return new QuestionSearchResponseDto(
-                        resultList,
-                        new PageInfoDto(
-                                safePage,
-                                questions.getTotalPages(),
-                                (int) questions.getTotalElements())
-                );
-            }
+            return new QuestionSearchResponseDto(
+                    resultList,
+                    new PageInfoDto(
+                            safePage,
+                            questions.getTotalPages(),
+                            (int) questions.getTotalElements()
+                    )
+            );
         }
 
-
-        //3. 답변 검색 결과
+       // 3. 답변 검색 결과 (정렬 없음: 그대로 출력)
         else {
-            Page<Answer> answers;
+            // 답변 전용 pageable: 정렬 없이(unsorted), 페이지/사이즈만 반영
+            Pageable answerPageable = PageRequest.of(safePage - 1, safeSize, Sort.unsorted());
 
+            Page<Answer> answers;
             if (keyword == null || keyword.trim().isEmpty()) {
-                answers = answerRepository.findAll(pageable); // 공백이면 전체 조회
+                answers = answerRepository.findAll(answerPageable); // 공백이면 전체
             } else {
-                answers = answerRepository.searchAnswers(keyword, pageable); // 키워드 있으면 검색
+                answers = answerRepository.searchAnswers(keyword, answerPageable); // 키워드 있으면 검색
             }
 
             return new AnswerSearchResponseDto(
                     answers.getContent().stream()
-                            .filter(a -> a.getQuestion() != null && a.getQuestion().getBook() != null)
+                            .filter(a -> a.getQuestion() != null && a.getQuestion().
+                                    getBook() != null)
                             .map(a -> {
                                 User user = userRepository.findById(a.getUser().getUserId())
                                         .orElseThrow(UserNotFoundException::new);
-
                                 return new AnswerSearchOneDto(
                                         a.getAnswerId(),
                                         a.getAnswerContent(),
@@ -279,5 +287,6 @@ public class SearchService {
                     )
             );
         }
+
     }
 }

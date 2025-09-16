@@ -12,11 +12,11 @@ import qnb.search.service.SearchService;
 
 @RestController
 @RequestMapping("/api/search")
-@CrossOrigin(
+/*@CrossOrigin(
         origins = "http://3.107.175.151:3000",
         allowedHeaders = "*",
         methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS, RequestMethod.PUT, RequestMethod.DELETE}
-)
+)*/
 @RequiredArgsConstructor
 public class SearchController {
 
@@ -44,7 +44,8 @@ public class SearchController {
 
         if (mode.equals("full")) {
 
-            if (type == null || (!type.equals("BOOK") && !type.equals("QUESTION") && !type.equals("ANSWER"))) {
+            if (type == null || (!type.equals("BOOK") && !type.equals("QUESTION") &&
+                    !type.equals("ANSWER"))) {
 
                 throw new MissingFieldException();
             }
