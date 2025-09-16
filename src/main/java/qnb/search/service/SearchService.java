@@ -137,6 +137,15 @@ public class SearchService {
         return Sort.by(Sort.Order.desc("createdAt"));
     }
 
+    //답변 정렬 메소드
+    private Sort buildAnswerSort(String sort) {
+        if ("popular".equalsIgnoreCase(sort)) {
+            return Sort.by(Sort.Order.desc("likeCount"));
+        }
+        // 기본은 최신순
+        return Sort.by(Sort.Order.desc("createdAt"));
+    }
+
 
     //======검색 결과 FULL 버전 생성하는 메소드======
     public Object searchFull(String type, String keyword, int page, int size, String sort) {
@@ -239,25 +248,25 @@ public class SearchService {
             );
         }
 
-       // 3. 답변 검색 결과 (정렬 없음: 그대로 출력)
-        else {
-            // 답변 전용 pageable: 정렬 없이(unsorted), 페이지/사이즈만 반영
-            Pageable answerPageable = PageRequest.of(safePage - 1, safeSize, Sort.unsorted());
+        // 3. 답변 검색 결과 (정렬 없음: 그대로 출력)
+        else if ("ANSWER".equals(type)) {
+            Sort sortSpec = buildAnswerSort(sort);
+            Pageable pageable = PageRequest.of(safePage - 1, safeSize, sortSpec);
 
             Page<Answer> answers;
             if (keyword == null || keyword.trim().isEmpty()) {
-                answers = answerRepository.findAll(answerPageable); // 공백이면 전체
+                answers = answerRepository.findAll(pageable); // 전체 조회
             } else {
-                answers = answerRepository.searchAnswers(keyword, answerPageable); // 키워드 있으면 검색
+                answers = answerRepository.searchAnswers(keyword, pageable); // 키워드 검색
             }
 
             return new AnswerSearchResponseDto(
                     answers.getContent().stream()
-                            .filter(a -> a.getQuestion() != null && a.getQuestion().
-                                    getBook() != null)
+                            .filter(a -> a.getQuestion() != null && a.getQuestion().getBook() != null)
                             .map(a -> {
                                 User user = userRepository.findById(a.getUser().getUserId())
                                         .orElseThrow(UserNotFoundException::new);
+
                                 return new AnswerSearchOneDto(
                                         a.getAnswerId(),
                                         a.getAnswerContent(),
@@ -287,6 +296,8 @@ public class SearchService {
                     )
             );
         }
-
+        else {
+            throw new IllegalArgumentException("지원하지 않는 type입니다");
+        }
     }
 }
