@@ -79,7 +79,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 //개발용
                 "http://localhost:3000",
-                "http://16.176.9.167:3000",
+                "http://13.211.204.224:3000",
 
                 //아이폰
                 "http://192.168.0.109:3000",
